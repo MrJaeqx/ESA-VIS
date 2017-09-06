@@ -33,6 +33,7 @@
 
 #custom
 cppInterface
+drawShapes
 CMakeCache.txt
 cmake_install.cmake
 Makefile
