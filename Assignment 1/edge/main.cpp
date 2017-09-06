@@ -62,7 +62,7 @@ void processImageUsingOpenCVFunctions()
 void processImage4()
 {
     kernel_size = 3;
-    kernel = (Mat_<double>(3,3) << 0, -1, 0, -1, 4, -1, 0, -1, 0);
+    kernel = (Mat_<int>(3,3) << 0, -1, 0, -1, 4, -1, 0, -1, 0);
     cvtColor( image, processedImage4, CV_BGR2GRAY );
     filter2D(processedImage4, processedImage4, ddepth , kernel, Point( -1, -1 ), delta, BORDER_DEFAULT );
 }
@@ -70,7 +70,7 @@ void processImage4()
 void processImage8()
 {
     kernel_size = 3;
-    kernel = (Mat_<double>(3,3) << 0, -1, 0, -1, 8, -1, 0, -1, 0);
+    kernel = (Mat_<int>(3,3) << 0, -1, 0, -1, 8, -1, 0, -1, 0);
     cvtColor( image, processedImage8, CV_BGR2GRAY );
     filter2D(processedImage8, processedImage8, ddepth , kernel, Point( -1, -1 ), delta, BORDER_DEFAULT );
 }
@@ -78,7 +78,7 @@ void processImage8()
 void processImageGradient()
 {
     kernel_size = 3;
-    kernel = (Mat_<double>(3,3) << -1, 0, 1, -1, 0, 1, -1, 0, 1);
+    kernel = (Mat_<int>(3,3) << -1, 0, 1, -1, 0, 1, -1, 0, 1);
     cvtColor( image, processedGradient, CV_BGR2GRAY );
     filter2D(processedGradient, processedGradient, ddepth , kernel, Point( -1, -1 ), delta, BORDER_DEFAULT );
 }
