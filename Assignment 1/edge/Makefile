@@ -39,10 +39,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source"
+CMAKE_SOURCE_DIR = "/home/viki/git/ESA-VIS/Assignment 1/edge"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source"
+CMAKE_BINARY_DIR = "/home/viki/git/ESA-VIS/Assignment 1/edge"
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -69,9 +69,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles" "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/git/ESA-VIS/Assignment 1/edge/CMakeFiles" "/home/viki/git/ESA-VIS/Assignment 1/edge/CMakeFiles/progress.marks"
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/git/ESA-VIS/Assignment 1/edge/CMakeFiles" 0
 .PHONY : all
 
 # The main clean target
