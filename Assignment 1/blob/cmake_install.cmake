@@ -1,4 +1,4 @@
-# Install script for directory: /home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source
+# Install script for directory: /home/viki/git/ESA-VIS/Assignment 1/blob
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,7 +38,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/viki/git/ESA-VIS/Assignment 1/blob/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/viki/git/ESA-VIS/Assignment 1/blob/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

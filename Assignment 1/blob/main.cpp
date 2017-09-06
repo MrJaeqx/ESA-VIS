@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
@@ -10,70 +11,72 @@ void displayGraphics();
 Mat image;
 Mat processedImage;
 
-int main(int argc, char *argv[])
-{
-//create a window
-namedWindow("Image");
-namedWindow("Processed Image");
+int main(int argc, char *argv[]) {
+  //load the image
+  if(argc > 1)
+  	image = imread(argv[1]);	
+  else
+  	image = imread("blobs labelling.jpg", CV_LOAD_IMAGE_GRAYSCALE);	
 
-//load the image
-if(argc > 1)
-	image = imread(argv[1]);	
-else
-	image = imread("lena.jpg");	
-
-if(image.empty())
-	exit(1);
+  if(image.empty())
+  	exit(1);
 
 
-processImage();
-displayGraphics();
+  processImage();
+  displayGraphics();
 
-waitKey(0);
+  waitKey(0);
 
 
-//no need to release memory
-return 0;
+  //no need to release memory
+  return 0;
 }
 
+bool isForeground(Vec3b pixel) {
+  int bgBright = 50;
 
-
-
-void displayGraphics()
-{
-//display both images
-imshow("Image", image);
-imshow("Processed Image", processedImage);
+  if (pixel[0] + pixel[1] + pixel[2] > bgBright)
+    return true;
+  return false;
 }
 
-
-
-
-void processImage()
-{
-int x,y;
-Vec3b pixel;
-unsigned char R, G, B;
-processedImage = image.clone();
-
-for(y = 0; y < processedImage.rows; y++)
- for(x = 0; x < processedImage.cols; x++)
- {
-  //Get the pixel at (x,y)
-  pixel = processedImage.at<Vec3b>(y, x);
-  //get the separate colors
-  B = pixel[0];
-  G = pixel[1];
-  R = pixel[2];
-  //assign the complement to each color
-  pixel[0] = 255 - B;
-  pixel[1] = 255 - G;
-  pixel[2] = 255 - R;
-  //write the pixel back to the image
-  processedImage.at<Vec3b>(y, x) = pixel;
- }
+void displayGraphics() {
+  //display both images
+  imshow("Image", image);
+  imshow("Processed Image", processedImage);
 }
 
+Mat makeMonochrome(Mat input) {
+  int x,y;
+  for(y = 0; y < input.rows; y++) {
+    for(x = 0; x < input.cols; x++) {
+      Vec3b pixel = input.at<Vec3b>(y, x);
+      if (isForeground(pixel)) {
+        input.at<Vec3b>(y, x) = Vec3b(255,255,255);
+      }
+      else {
+        input.at<Vec3b>(y, x) = Vec3b(0,0,0);
+      }
+    }
+  }
+  return input;
+}
 
-
-
+void processImage() {
+  int x,y;
+  Vec3b pixel;
+  processedImage = makeMonochrome(image);
+  //processedImage = image.clone();
+  
+  for(y = 0; y < processedImage.rows; y++) {
+    for(x = 0; x < processedImage.cols; x++) {
+      pixel = processedImage.at<Vec3b>(y, x);
+      if (isForeground(pixel)) {
+        processedImage.at<Vec3b>(y, x) = pixel;
+      }
+      else {
+        processedImage.at<Vec3b>(y, x) = pixel;
+      }
+    }
+  }
+}

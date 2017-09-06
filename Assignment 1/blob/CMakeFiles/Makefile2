@@ -47,10 +47,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source"
+CMAKE_SOURCE_DIR = "/home/viki/git/ESA-VIS/Assignment 1/blob"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source"
+CMAKE_BINARY_DIR = "/home/viki/git/ESA-VIS/Assignment 1/blob"
 
 #=============================================================================
 # Target rules for target CMakeFiles/cppInterface.dir
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 sour
 CMakeFiles/cppInterface.dir/all:
 	$(MAKE) -f CMakeFiles/cppInterface.dir/build.make CMakeFiles/cppInterface.dir/depend
 	$(MAKE) -f CMakeFiles/cppInterface.dir/build.make CMakeFiles/cppInterface.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles"  1
+	$(CMAKE_COMMAND) -E cmake_progress_report "/home/viki/git/ESA-VIS/Assignment 1/blob/CMakeFiles"  1
 	@echo "Built target cppInterface"
 .PHONY : CMakeFiles/cppInterface.dir/all
 
@@ -69,9 +69,9 @@ all: CMakeFiles/cppInterface.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/cppInterface.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles" 1
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/git/ESA-VIS/Assignment 1/blob/CMakeFiles" 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/cppInterface.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/Documents/git/ESA-VIS/Assignment 0/example 1 source/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/viki/git/ESA-VIS/Assignment 1/blob/CMakeFiles" 0
 .PHONY : CMakeFiles/cppInterface.dir/rule
 
 # Convenience name for target.
