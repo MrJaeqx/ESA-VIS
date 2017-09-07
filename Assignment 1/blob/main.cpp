@@ -4,11 +4,9 @@
 
 using namespace cv;
 
-//main functions
 void processImage();
 void displayGraphics();
 
-//images
 Mat image;
 Mat processedImage;
 std::vector<Vec3b> colors;
@@ -16,14 +14,6 @@ Vec3b currColor;
 int colorIndex = 0;
 
 int main(int argc, char *argv[]) {
-	colors.push_back(Vec3b(255, 0, 0));
-	colors.push_back(Vec3b(0, 255, 0));
-	colors.push_back(Vec3b(0, 0, 255));
-	colors.push_back(Vec3b(255, 255, 0));
-	colors.push_back(Vec3b(255, 0, 255));
-	colors.push_back(Vec3b(0, 255, 255));
-
-	//load the image
 	if(argc > 1)
 		image = imread(argv[1]);	
 	else
@@ -32,26 +22,31 @@ int main(int argc, char *argv[]) {
 	if(image.empty())
 		exit(1);
 
+	// create our list of colors
+	colors.push_back(Vec3b(255, 0, 0));
+	colors.push_back(Vec3b(0, 255, 0));
+	colors.push_back(Vec3b(0, 0, 255));
+	colors.push_back(Vec3b(255, 255, 0));
+	colors.push_back(Vec3b(255, 0, 255));
+	colors.push_back(Vec3b(0, 255, 255));
 
 	processImage();
 	displayGraphics();
 
+	// save image for external inspection
 	imwrite("./res.png", processedImage);
 
 	waitKey(0);
-
-
-	//no need to release memory
 	return 0;
 }
 
 void displayGraphics() {
-	//display both images
 	imshow("Image", image);
 	imshow("Processed Image", processedImage);
-
 }
 
+// we simply treat everything brighter than "half"
+// as foreground
 bool isForeground(Vec3b &pixel) {
 	int bgBright = 127*3;
 	int total = pixel[0] + pixel[1] + pixel[2];
@@ -85,6 +80,8 @@ bool isWhite(Vec3b &pixel) {
 	return false;
 }
 
+// keep checking pixels around the current pixel for being white and 
+// match the current color, and continue with the just changed pixel
 void matchSurroundingColor(Vec3b &pixel, int y, int x) {
 	for (int j = -1; j <= 1; j++) {
 		if (y+j < 0 || y+j >= processedImage.rows) continue;
@@ -99,6 +96,8 @@ void matchSurroundingColor(Vec3b &pixel, int y, int x) {
 	}
 }
 
+// loop over every pixel, but only call matchSurroundingColor if
+// the pixel's white, and once that's done, change the color.
 void processImage() {
 	int x,y;
 	processedImage = makeMonochrome(image);
