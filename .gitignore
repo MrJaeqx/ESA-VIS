@@ -31,9 +31,7 @@
 *.out
 *.app
 
-#custom
-cppInterface
-drawShapes
+#Cmake
 CMakeCache.txt
 cmake_install.cmake
 Makefile

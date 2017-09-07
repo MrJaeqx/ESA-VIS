@@ -9,6 +9,6 @@ PROJECT( drawShapes  )
 # sources to include
 include_directories (.)
 FIND_PACKAGE( OpenCV REQUIRED )
-ADD_EXECUTABLE( drawShapes  main.cpp)
-TARGET_LINK_LIBRARIES( drawShapes ${OpenCV_LIBS} )
+ADD_EXECUTABLE( drawShapes.out  main.cpp)
+TARGET_LINK_LIBRARIES( drawShapes.out ${OpenCV_LIBS} )
 
