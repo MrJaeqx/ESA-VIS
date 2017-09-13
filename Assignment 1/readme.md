@@ -8,6 +8,10 @@ Lars, doe je ding.
 
 # Blobs
 
+## Preparations
+The input image was in jpg format. Although it appeared to be black and white, when zoomed in, colored JPEG artifacts were visible. The edge was also fuzzy and not pixel-sharp. We checked the *brightness* of the pixel and when the average was brighter than half, it was determined to be white. In this way we created a purely black and white image to work with.
+
+## Algorithm
 For the blob assignment, we first tried doing it per line pixel and working line by line. This proved to not work very well, as it was impossible to determine the colors of the pixels starting on another line which are offset more than one pixel from the previous lines pixel. 
 
 We then tried to color the first found pixels and the pixels around that, with a recursive function moving to the next pixel each time. This proved to work well, with each blob appearing separately colored.
