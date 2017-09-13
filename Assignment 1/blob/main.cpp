@@ -23,12 +23,14 @@ int main(int argc, char *argv[]) {
 		exit(1);
 
 	// create our list of colors
+	createColorTable(colors);
 	colors.push_back(Vec3b(255, 0, 0));
 	colors.push_back(Vec3b(0, 255, 0));
 	colors.push_back(Vec3b(0, 0, 255));
 	colors.push_back(Vec3b(255, 255, 0));
 	colors.push_back(Vec3b(255, 0, 255));
 	colors.push_back(Vec3b(0, 255, 255));
+	colors.push_back(Vec3b(255, 255, 255));
 
 	processImage();
 	displayGraphics();
