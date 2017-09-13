@@ -28,7 +28,7 @@ The gradient filter used the following kernel:
 |-1| 0| 1|
 |-1| 0| 1|
 
-As extra we processed the image with the OpenCV Laplacian filter, just to see the differences with the custom kernels we made and to do some experiments with the parametes.
+As extra we processed the image with the OpenCV Laplacian filter, just to see the differences with the custom kernels we made and to do some experiments with the parameters.
 
 ![Results](./edge_results.png)
 
