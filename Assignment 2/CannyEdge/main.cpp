@@ -1,9 +1,27 @@
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 using namespace cv;
 
-Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3.0) {
+
+/// Global variables
+
+Mat src, src_gray;
+Mat dst, detected_edges;
+
+int edgeThresh = 1;
+int lowThreshold;
+int const max_lowThreshold = 100;
+int ratio = 3;
+int kernel_size = 3;
+const char* window_name = "Edge Map";
+int kernel_sizes_index = 0;
+
+std::vector<int> kernel_sizes;
+
+Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, int size = 3) {
     Mat workImg = Mat(src);
 
     workImg = src.clone();
@@ -81,7 +99,7 @@ Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3.0) 
     int i = 0;
     while (imageChanged) {
         imageChanged = false;
-        printf("Iteration %d\n", i);
+        //printf("Iteration %d\n", i);
         i++;
         itMag = sum.begin<float>();
         itDirection = direction.begin<float>();
@@ -203,10 +221,31 @@ Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3.0) 
     return returnImg;
 }
 
-int main(int argc, char ** argv) {
-    int upperThreshold = 10;
-    int lowerThreshold = 5;
+/**
+ * @function CannyThreshold
+ * @brief Trackbar callback - Canny thresholds input with a ratio 1:3
+ */
+void CannyThreshold(int, void*) {
+    // Blur is already in MyCanny
+    // Canny detector
+    // Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
+    detected_edges = MyCanny( src_gray, lowThreshold, lowThreshold*ratio, kernel_sizes[kernel_sizes_index] );
 
+    imshow( window_name, detected_edges );
+    printf("Low threshold: %d\n", lowThreshold);
+    printf("Kernel size  : %d\n", kernel_sizes[kernel_sizes_index]);
+    
+}
+
+int main(int argc, char ** argv) {
+    int lowerThreshold = 5;
+    int upperThreshold = 3 * lowerThreshold;
+
+    for (int i = 1; i < 32; i++) {
+        if (i % 2 == 1)
+        kernel_sizes.push_back(i);        
+    }
+    
     Mat src;
     Mat output;
 
@@ -214,15 +253,18 @@ int main(int argc, char ** argv) {
     if(argc > 1)
         src = imread(argv[1]);	
     else
-        src = imread("Edge Detection.png");	
+        src = imread("Edge Detection.png");
 
     if(src.empty())
         exit(1);
     
-    output = MyCanny(src, upperThreshold, lowerThreshold);
-
-    imshow("Input", src);
-    imshow("Output", output);
+    dst.create( src.size(), src.type() );
+    cvtColor( src, src_gray, CV_BGR2GRAY );
+    namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+    createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+    createTrackbar( "Gaussian size:", window_name, &kernel_sizes_index, kernel_sizes.size() - 1, CannyThreshold );
+    CannyThreshold(0, 0);
+    
     waitKey(0);    
     return 0;
 }
