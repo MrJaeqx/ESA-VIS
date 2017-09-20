@@ -3,7 +3,7 @@
 
 using namespace cv;
 
-Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3) {
+Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3.0) {
     Mat workImg = Mat(src);
 
     workImg = src.clone();
@@ -204,5 +204,25 @@ Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, double size = 3) {
 }
 
 int main(int argc, char ** argv) {
+    int upperThreshold = 10;
+    int lowerThreshold = 5;
+
+    Mat src;
+    Mat output;
+
+    //load the image
+    if(argc > 1)
+        src = imread(argv[1]);	
+    else
+        src = imread("Edge Detection.png");	
+
+    if(src.empty())
+        exit(1);
+    
+    output = MyCanny(src, upperThreshold, lowerThreshold);
+
+    imshow("Input", src);
+    imshow("Output", output);
+    waitKey(0);    
     return 0;
 }
