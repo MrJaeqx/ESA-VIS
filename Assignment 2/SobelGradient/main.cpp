@@ -9,6 +9,8 @@ Vec3b red = (Vec3b(0, 0, 255));
 Vec3b yel = (Vec3b(0, 255, 255));
 Vec3b blu = (Vec3b(255, 0, 0));
 Vec3b grn = (Vec3b(0, 255, 0));
+Vec3b blk = (Vec3b(0, 0, 0));
+
 
 int main(int argc, char ** argv) {
     Mat src, src_gray;
@@ -31,24 +33,7 @@ int main(int argc, char ** argv) {
         exit(1);
     }
 
-    //GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
     cvtColor( src, src_gray, CV_BGR2GRAY );
-
-    /// Gradient X
-    Sobel( src_gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
-    //convertScaleAbs( grad_x, abs_grad_x );
-
-    /// Gradient Y
-    Sobel( src_gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
-    //convertScaleAbs( grad_y, abs_grad_y );
-
-    //addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
-
-    //Mat angles;
-    //phase(grad_x,grad_y,angles,true);
-    
-    Mat derp;
-    derp = src.clone();
 
     for (int y = 0; y < src_gray.rows; y++) {
         for (int x = 0; x < src_gray.cols; x++) {
@@ -61,6 +46,21 @@ int main(int argc, char ** argv) {
         }
     }
 
+    //imshow("Sobel B/W", src_gray );
+    
+    floodFill(src_gray, cv::Point(src_gray.cols/2,src_gray.rows/2), Scalar(255));
+    
+    
+    Mat derp;
+    cvtColor( src_gray, derp, CV_GRAY2BGR );
+    
+    GaussianBlur( src_gray, src_gray, Size(15,15), 0, 0, BORDER_DEFAULT );
+    imshow("Sobel B/W", src_gray );
+    
+    Sobel( src_gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+    Sobel( src_gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+    
+    
     for (int y = 0; y < src_gray.rows; y++) {
         for (int x = 0; x < src_gray.cols; x++) {
             if (src_gray.at<uchar>(y, x) < 127) {
@@ -77,36 +77,35 @@ int main(int argc, char ** argv) {
             float degs = gradient * 180.0/M_PI;
 
             if (degs < 0) {
-                //degs = degs * -1.0f;
                 degs = 360.0f + degs;                
             }
 
-            if (degs < 45.0f) {
+            if (degs >= 1.0f && degs < 45.0f) {
                 derp.at<Vec3b>(y, x) = red;
             }
-            if (degs >= 45.0f && degs < 135.0f) {
+            else if (degs >= 45.0f && degs < 135.0f) {
                 derp.at<Vec3b>(y, x) = yel;                
             }
-            if (degs >= 135.0f && degs < 225.0f) {
+            else if (degs >= 135.0f && degs < 225.0f) {
                 derp.at<Vec3b>(y, x) = blu;                
             }
-            if (degs >= 225.0f && degs < 315.0f) {
+            else if (degs >= 225.0f && degs < 315.0f) {
                 derp.at<Vec3b>(y, x) = grn;       
             }
-            if (degs >= 315.0f && degs < 360.0f) {
+            else if (degs >= 315.0f && degs < 360.0f) {
                 derp.at<Vec3b>(y, x) = red;  
+            }
+            else {
+                derp.at<Vec3b>(y, x) = blk;
             }
         }
     }
-
-    /// Total Gradient (approximate)
-    //addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
-        
-    imshow("Sobel Gradient", derp );
-    //imshow("Sobel Gradient2", grad );
     
-
+    imshow("Sobel Gradient", derp );
+    imwrite("./res.png", derp);
+    
     waitKey(0);    
     
     return 0;
 }
+
