@@ -79,9 +79,7 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table =
 int main(int argc, char ** argv) {
     bool useTable = false;
     Mat src, src_gray;
-    Mat grad;
     Mat grad_x, grad_y;
-    Mat abs_grad_x, abs_grad_y;
   
     if(argc > 1) {
         src = imread(argv[1]);
