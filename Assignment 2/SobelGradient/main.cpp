@@ -99,11 +99,13 @@ int main(int argc, char ** argv) {
             }
         }
     }
+    imwrite("./sobel_step0.png", src_gray);    
     
     // fill the circle so there's just one edge
     floodFill(src_gray, cv::Point(src_gray.cols/2,src_gray.rows/2), Scalar(255));
 
     imshow("Sobel B/W", src_gray );
+    imwrite("./sobel_step1.png", src_gray);
     
     Mat derp;
     cvtColor( src_gray, derp, CV_GRAY2BGR );
@@ -111,6 +113,7 @@ int main(int argc, char ** argv) {
     // blur the image to get a bigger edge
     GaussianBlur( src_gray, src_gray, Size(15,15), 0, 0, BORDER_DEFAULT );
     imshow("Sobel B/W blurred", src_gray );
+    imwrite("./sobel_step2.png", src_gray);
     
     // use the sobel function to generate the gradients
     Sobel( src_gray, grad_x, CV_16S, 1, 0, 3, 1, 0, BORDER_DEFAULT );
@@ -120,7 +123,7 @@ int main(int argc, char ** argv) {
     colorGradient(src_gray, grad_x, grad_y, derp);
     
     imshow("Sobel Gradient", derp );
-    imwrite("./res.png", derp);
+    imwrite("./sobel_res.png", derp);
     
     waitKey(0);    
     
