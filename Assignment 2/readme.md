@@ -4,6 +4,22 @@ Minh-Triet Diep, Lars Jaeqx
 
 ## Canny Edge
 
+For the canny edge implementation, we took example from [this website](http://aishack.in/tutorials/implementing-canny-edges-scratch/). We discovered this was the original source from the provided PDF.
+
+We made a window with two sliders to change the parameters, to make it easier to gather data and decide what looks better. Here are the results. Note that we used an array to represent the gaussian blur kernel sizes:
+
+1. 3x3
+2. 5x5
+3. 7x7
+
+Threshold:
+|5|50|100|
+|-|--|---|
+|![x](./can3_0.png)|![x](./can3_1.png)|![x](./can3_2.png)|
+|![x](./can5_0.png)|![x](./can5_1.png)|![x](./can5_2.png)|
+|![x](./can7_0.png)|![x](./can7_1.png)|![x](./can7_2.png)|
+
+The result with the 3x3 kernel and the high lower threshold seems the clearest to us. In general the 3x3 also gives more freedom on selecting detail level.
 
 ## Sobel Gradient
 We first load the circle and convert it to a grayscale. This is the input image:

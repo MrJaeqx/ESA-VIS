@@ -21,6 +21,7 @@ int kernel_sizes_index = 0;
 
 std::vector<int> kernel_sizes;
 
+// from http://aishack.in/tutorials/implementing-canny-edges-scratch/
 Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, int size = 3) {
     Mat workImg = Mat(src);
 
@@ -221,10 +222,6 @@ Mat MyCanny(Mat src, int upperThreshold, int lowerThreshold, int size = 3) {
     return returnImg;
 }
 
-/**
- * @function CannyThreshold
- * @brief Trackbar callback - Canny thresholds input with a ratio 1:3
- */
 void CannyThreshold(int, void*) {
     // Blur is already in MyCanny
     // Canny detector
@@ -262,9 +259,12 @@ int main(int argc, char ** argv) {
     cvtColor( src, src_gray, CV_BGR2GRAY );
     namedWindow( window_name, CV_WINDOW_AUTOSIZE );
     createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
-    createTrackbar( "Gaussian size:", window_name, &kernel_sizes_index, kernel_sizes.size() - 1, CannyThreshold );
+    createTrackbar( "Kernel size:", window_name, &kernel_sizes_index, kernel_sizes.size() - 1, CannyThreshold );
     CannyThreshold(0, 0);
-    
-    waitKey(0);    
+
+    while(waitKey(0) != 'a') {
+        waitKey(0);
+    }
+
     return 0;
 }
