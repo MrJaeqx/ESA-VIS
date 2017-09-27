@@ -38,10 +38,8 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table =
             double degs = gradient * 180.0/M_PI;
             
             // since atan gives back between -pi, pi, and we scale 
-            // to degrees and expect 0, 360, so just flip that region 
-            if (degs < 0.0) {
-                degs = 360.0 + degs;
-            }
+            // to degrees and expect 0, 360, so just flip it around
+            degs = 180.0 - degs;
 
             // continuous colored circle
             if (!table) {
