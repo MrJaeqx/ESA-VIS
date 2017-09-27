@@ -56,7 +56,7 @@ We cheated a bit, because 0 is an angle too. For the white area without transiti
 
 We can notice some artifacts though. The inside shows some blocks where the angle is near the transition points. With smaller blur values, this is more of a line, and with bigger blur values, this becames more of a small line on the inside of the circle. We think this is due to the difference between dx and dy isn't clear-cut near these angles.
 
-After writing additional functionality, a smooth color transition (map angles to HSV), we concluded that any place where dy = dx = 0 is a background anyway, so we check that instead of checking it later. 
+After writing additional functionality, a smooth color transition (map angles to HSV), we concluded that any place where dy = dx = 0 is a background anyway, so we check that immediately after calculating dy/dx, instead of checking it later. This allows for some compacter color map application code, and a clean and simple HSV section.
 
 This is the final result for the smooth table:
 

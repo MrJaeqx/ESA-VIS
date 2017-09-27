@@ -14,6 +14,7 @@ const Vec3b blk = (Vec3b(0, 0, 0));
 void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table = false) {
     for (int y = 0; y < src_gray.rows; y++) {
         for (int x = 0; x < src_gray.cols; x++) {
+            // simply skip black pixels
             if (src_gray.at<uchar>(y, x) < 127) {
                 continue;
             }
@@ -25,6 +26,7 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table =
             short grad_y_px = grad_y.at<short>(y, x);
             double val_y_px = ((double)grad_y_px)/32767.0;
 
+            // skip no-gradient areas
             if (val_y_px == 0.0 && val_x_px == 0.0) {
                 continue;
             }
@@ -41,15 +43,16 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table =
                 degs = 360.0 + degs;
             }
 
-            // rainbow thingy
+            // continuous colored circle
             if (!table) {
-                Mat toHSV(1,1,CV_8UC3,Scalar((degs*255)/720, 255, 255));
+                // we have degrees from 0 to 360, but the HSV format only
+                // works with degrees 0 to 180, so we need to correct map
+                // it. This happens by dividing by 720 (and scaling back 
+                // to 0-255 because Vec3b)
+                Mat toHSV(1, 1, CV_8UC3, Scalar((degs*255)/720, 255, 255));
                 Mat temp;
                 cvtColor(toHSV, temp, CV_HSV2BGR);
-
-                if (!(val_y_px == 0.0 && val_x_px == 0.0)) {
-                    derp.at<Vec3b>(y, x) = temp.at<Vec3b>(0,0);
-                }
+                derp.at<Vec3b>(y, x) = temp.at<Vec3b>(0,0);
             }
             // 4 sections
             else {
