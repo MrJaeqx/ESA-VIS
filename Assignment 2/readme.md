@@ -12,9 +12,9 @@ We made a window with two sliders to change the parameters, to make it easier to
 2. 5x5
 3. 7x7
 
-Threshold:
-|5|50|100|
-|-|--|---|
+
+|Threshold: 5|Threshold: 50|Threshold: 100|
+|------------|-------------|--------------|
 |![x](./can3_0.png)|![x](./can3_1.png)|![x](./can3_2.png)|
 |![x](./can5_0.png)|![x](./can5_1.png)|![x](./can5_2.png)|
 |![x](./can7_0.png)|![x](./can7_1.png)|![x](./can7_2.png)|
