@@ -11,7 +11,7 @@ const Vec3b blu = (Vec3b(255, 0, 0));
 const Vec3b grn = (Vec3b(0, 255, 0));
 const Vec3b blk = (Vec3b(0, 0, 0));
 
-void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp) {
+void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp, bool table = false) {
     for (int y = 0; y < src_gray.rows; y++) {
         for (int x = 0; x < src_gray.cols; x++) {
             if (src_gray.at<uchar>(y, x) < 127) {
@@ -25,42 +25,48 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp) {
             short grad_y_px = grad_y.at<short>(y, x);
             double val_y_px = ((double)grad_y_px)/32767.0;
 
+            if (val_y_px == 0.0 && val_x_px == 0.0) {
+                continue;
+            }
+
             // use atan2 to calculate a in tan(a) = dy/dx
             double gradient = atan2(val_y_px, val_x_px);
 
             // use degrees because it's easy to work with
             double degs = gradient * 180.0/M_PI;
-
+            
             // since atan gives back between -pi, pi, and we scale 
             // to degrees and expect 0, 360, so just flip that region 
             if (degs < 0.0) {
                 degs = 360.0 + degs;
             }
 
-            if (degs > 0.0 && degs < 45.0) {
-                derp.at<Vec3b>(y, x) = red;
+            // rainbow thingy
+            if (!table) {
+                Mat toHSV(1,1,CV_8UC3,Scalar((degs*255)/720, 255, 255));
+                Mat temp;
+                cvtColor(toHSV, temp, CV_HSV2BGR);
+
+                if (!(val_y_px == 0.0 && val_x_px == 0.0)) {
+                    derp.at<Vec3b>(y, x) = temp.at<Vec3b>(0,0);
+                }
             }
-            else if (degs >= 45.0 && degs < 135.0) {
-                derp.at<Vec3b>(y, x) = yel;
-            }
-            else if (degs >= 135.0 && degs < 225.0) {
-                derp.at<Vec3b>(y, x) = blu;
-            }
-            else if (degs >= 225.0 && degs < 315.0) {
-                derp.at<Vec3b>(y, x) = grn;
-            }
-            else if (degs >= 315.0 && degs < 360.0) {
-                derp.at<Vec3b>(y, x) = red;
-            }
+            // 4 sections
             else {
-                derp.at<Vec3b>(y, x) = blk;
-                // we know that atan2(0, x) is always 0 and it doesn't
-                // matter what x is, so we can't distinguish between a
-                // vertical line and a white plane. We still have the 
-                // data itself, so we can check for this separately. This
-                // fixes the left edge being detected as black.
-                if (val_y_px == 0.0 && val_x_px > 0.0) {
-                    derp.at<Vec3b>(y, x) = red;                    
+                if (degs < 45.0) {
+                    derp.at<Vec3b>(y, x) = red;
+                }
+                else if (degs >= 45.0 && degs < 135.0) {
+                    derp.at<Vec3b>(y, x) = yel;
+                }
+                else if (degs >= 135.0 && degs < 225.0) {
+                    derp.at<Vec3b>(y, x) = blu;
+                }
+                else if (degs >= 225.0 && degs < 315.0) {
+                    derp.at<Vec3b>(y, x) = grn;
+                }
+                else if (degs >= 315.0 && degs < 360.0) {
+                    derp.at<Vec3b>(y, x) = red;
                 }
             }
         }
@@ -68,6 +74,7 @@ void colorGradient(Mat src_gray, Mat grad_x, Mat grad_y, Mat &derp) {
 } 
 
 int main(int argc, char ** argv) {
+    bool useTable = false;
     Mat src, src_gray;
     Mat grad;
     Mat grad_x, grad_y;
@@ -78,6 +85,10 @@ int main(int argc, char ** argv) {
     }
     else {
         src = imread("SobelGradient.png");
+    }
+
+    if (strcmp("t", argv[argc-1]) == 0) {
+        useTable = true;
     }
 
     if(src.empty()) {
@@ -107,8 +118,7 @@ int main(int argc, char ** argv) {
     imshow("Sobel B/W", src_gray );
     imwrite("./sobel_step1.png", src_gray);
     
-    Mat derp;
-    cvtColor( src_gray, derp, CV_GRAY2BGR );
+    Mat derp(src.rows, src.cols, CV_8UC3, Scalar(0,0,0));
 
     // blur the image to get a bigger edge
     GaussianBlur( src_gray, src_gray, Size(15,15), 0, 0, BORDER_DEFAULT );
@@ -120,7 +130,7 @@ int main(int argc, char ** argv) {
     Sobel( src_gray, grad_y, CV_16S, 0, 1, 3, 1, 0, BORDER_DEFAULT );
     
     // color the image with the gradient data
-    colorGradient(src_gray, grad_x, grad_y, derp);
+    colorGradient(src_gray, grad_x, grad_y, derp, useTable);
     
     imshow("Sobel Gradient", derp );
     imwrite("./sobel_res.png", derp);
