@@ -12,3 +12,4 @@ FIND_PACKAGE( OpenCV REQUIRED )
 ADD_EXECUTABLE( cppInterface.out  main.cpp)
 TARGET_LINK_LIBRARIES( cppInterface.out ${OpenCV_LIBS} )
 
+set (CMAKE_CXX_STANDARD 11)
