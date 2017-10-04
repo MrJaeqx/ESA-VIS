@@ -52,30 +52,26 @@ int main(int argc, char** argv) {
 
     vector<LineThing> lineThings;
 
+    // We use HoughLinesP to make OpenCV detect line pieces. This results in multiple lines
+    // however, so we need to find out if the line pieces are on the line.
     for( size_t i = 0; i < lines.size(); i++ ) {
         Vec4i l = lines[i];
         line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 1, CV_AA);
-        //printf("Line %d\n", i);
 
         double x1 = lines[i][0];
         double y1 = lines[i][1];
         double x2 = lines[i][2];
         double y2 = lines[i][3];
 
-        // printf("x1: %d\n", x1);
-        // printf("y1: %d\n", y1);
-        // printf("x2: %d\n", x2);
-        // printf("y2: %d\n", y2);        
-        // y = a*x + b
         double a = (y2-y1)/(x2-x1);
         double b = y2 - (a * x2);
 
-        //printf("y = %lfx + %lf\n", a, b);
         lineThings.push_back(LineThing(a, b));
     }
 
     printf("LineThings: %d\n", (int)lineThings.size());
 
+    // We make a new vector with lines that occur just once. This is FinalLines.
     vector<int> okayIndexes;
     for ( int i = 0; i < lineThings.size(); i++ ) {
         for (int j = 0; j < lineThings.size(); j++) {
@@ -96,20 +92,41 @@ int main(int argc, char** argv) {
         finalLines.push_back(lineThings[okayIndexes[i]]);
     }
 
+    // We print the line formulas for the final lines
     for (int i = 0; i < finalLines.size(); i++) {
         printf("Line %d\n", i);
         printf("y = %lfx + %lf\n", finalLines[i].a, finalLines[i].b);
     }
 
+    // And then we draw them.
     for( size_t i = 0; i < finalLines.size(); i++ ) {
         LineThing l = finalLines[i];
         // y = a*x+b
         double y1 = l.a*0.0+l.b;
         double y2 = l.a*cdst.cols+l.b;
 
-        line( cdst, Point(0, (int)y1), Point(cdst.cols, (int)y2), Scalar(255,127,255), 1, CV_AA);
-        
+        line( cdst, Point(0, (int)y1), Point(cdst.cols, (int)y2), Scalar(255,0,0), 1, CV_AA);
     }
+
+    // We now calculate the intersections of the lines (within the window).
+    std::vector<Point> intersects;
+    for (int i = 0; i < finalLines.size(); i++) {
+        for (int j = 0; j < finalLines.size(); j++) {
+            if (i == j) continue;
+            double x = (finalLines[j].b - finalLines[i].b)/(finalLines[i].a - finalLines[j].a);
+            double y = (finalLines[i].a*x + finalLines[i].b);
+            if (x > 0.0 && x < (double)cdst.cols && y > 0.0 && y < (double)cdst.rows) {
+                if (std::find(intersects.begin(), intersects.end(), Point(x, y)) == intersects.end()) {
+                    intersects.push_back(Point(x, y));
+                    circle(cdst , Point(x, y), 25, Scalar(0, 255, 0), 1, 8, 0);
+                }
+            }
+        }   
+    }
+
+    printf("We have %d intersections\n", intersects.size());
+
+    //for (int i = 0; intersects.size(); i++) printf("")
 
     imshow("source", src);
     imshow("detected lines", cdst);
