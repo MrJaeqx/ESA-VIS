@@ -8,6 +8,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <iostream>
+#include <string>
 
 using namespace cv;
 
@@ -125,10 +126,10 @@ int main(int argc, char** argv) {
                     intersects.push_back(Point(x, y));
                     circle(cdst , Point(x, y), 10, Scalar(0, 255, 0), 1, 8, 0);
                 }
+                // dot product of two vectors
                 double numerator = finalLineVectors[i][0] * finalLineVectors[j][0] +finalLineVectors[i][1] * finalLineVectors[j][1];
                 double denominator = sqrt(pow(finalLineVectors[i][0], 2)+pow(finalLineVectors[i][1], 2)) * sqrt(pow(finalLineVectors[j][0], 2)+pow(finalLineVectors[j][1], 2));
                 double angle = acos(numerator/denominator);
-                //double angle = (acos())
                 if (std::find(angles.begin(), angles.end(), angle) == angles.end()) {
                     angles.push_back(angle);
                 }
@@ -142,8 +143,13 @@ int main(int argc, char** argv) {
         printf("P%d:\n", i);
         printf("\tx: %d\n", intersects[i].x);
         printf("\ty: %d\n", intersects[i].y);
-        printf("\ta: %lf\n", rad2deg(angles[i]));
-        printf("\ta: %lf\n", 180.0-rad2deg(angles[i]));
+
+        double angle1 = rad2deg(angles[i]);
+        double angle2 = 180.0 - angle1;
+
+        // We can't know which directions the vectors need to be,
+        // so we just give both angles. 
+        printf("\tangle: %.2lf° or %.2lf°\n", angle1, angle2);
     }
 
     imshow("source", src);
