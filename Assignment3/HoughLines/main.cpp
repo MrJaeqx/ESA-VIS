@@ -11,7 +11,9 @@
 
 using namespace cv;
 
-#define eps 0.1
+double rad2deg(double rad) {
+    return (rad*(180/M_PI));
+}
 
 struct LineThing {
     LineThing(double a_, double b_) : a(a_), b(b_) { }
@@ -98,6 +100,7 @@ int main(int argc, char** argv) {
         printf("y = %lfx + %lf\n", finalLines[i].a, finalLines[i].b);
     }
 
+    std::vector<Vec2i> finalLineVectors;    
     // And then we draw them.
     for( size_t i = 0; i < finalLines.size(); i++ ) {
         LineThing l = finalLines[i];
@@ -106,10 +109,12 @@ int main(int argc, char** argv) {
         double y2 = l.a*cdst.cols+l.b;
 
         line( cdst, Point(0, (int)y1), Point(cdst.cols, (int)y2), Scalar(255,0,0), 1, CV_AA);
+        finalLineVectors.push_back(Vec2i(cdst.cols-0, (int)y2-(int)y1));
     }
 
     // We now calculate the intersections of the lines (within the window).
     std::vector<Point> intersects;
+    std::vector<double> angles;
     for (int i = 0; i < finalLines.size(); i++) {
         for (int j = 0; j < finalLines.size(); j++) {
             if (i == j) continue;
@@ -118,15 +123,28 @@ int main(int argc, char** argv) {
             if (x > 0.0 && x < (double)cdst.cols && y > 0.0 && y < (double)cdst.rows) {
                 if (std::find(intersects.begin(), intersects.end(), Point(x, y)) == intersects.end()) {
                     intersects.push_back(Point(x, y));
-                    circle(cdst , Point(x, y), 25, Scalar(0, 255, 0), 1, 8, 0);
+                    circle(cdst , Point(x, y), 10, Scalar(0, 255, 0), 1, 8, 0);
+                }
+                double numerator = finalLineVectors[i][0] * finalLineVectors[j][0] +finalLineVectors[i][1] * finalLineVectors[j][1];
+                double denominator = sqrt(pow(finalLineVectors[i][0], 2)+pow(finalLineVectors[i][1], 2)) * sqrt(pow(finalLineVectors[j][0], 2)+pow(finalLineVectors[j][1], 2));
+                double angle = acos(numerator/denominator);
+                //double angle = (acos())
+                if (std::find(angles.begin(), angles.end(), angle) == angles.end()) {
+                    angles.push_back(angle);
                 }
             }
         }   
     }
 
-    printf("We have %d intersections\n", intersects.size());
+    printf("We have %lu intersections\n", intersects.size());
 
-    //for (int i = 0; intersects.size(); i++) printf("")
+    for (int i = 0; i < intersects.size(); i++) {
+        printf("P%d:\n", i);
+        printf("\tx: %d\n", intersects[i].x);
+        printf("\ty: %d\n", intersects[i].y);
+        printf("\ta: %lf\n", rad2deg(angles[i]));
+        printf("\ta: %lf\n", 180.0-rad2deg(angles[i]));
+    }
 
     imshow("source", src);
     imshow("detected lines", cdst);
