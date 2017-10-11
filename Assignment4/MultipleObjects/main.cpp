@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 	VideoCapture capture;
 
 	//open capture object at location zero (default location for webcam)
-	capture.open("MeasuringAngle.mp4");
+	capture.open("MultipleColors.mp4");
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
