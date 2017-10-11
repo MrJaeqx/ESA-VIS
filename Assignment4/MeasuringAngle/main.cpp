@@ -21,16 +21,21 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv/cv.h>
+#include <opencv2/core/core.hpp>
+
+//#include "opencv2/core.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
+//#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 using namespace cv;
 
 //initial min and max HSV filter values.
 //these will be changed using trackbars
 int H_MIN = 0;
-int H_MAX = 256;
-int S_MIN = 170;
+int H_MAX = 180;
+int S_MIN = 182;
 int S_MAX = 256;
-int V_MIN = 120;
+int V_MIN = 149;
 int V_MAX = 256;
 
 //default capture width and height
@@ -87,93 +92,58 @@ void createTrackbars(){
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
 }
 
-void drawObject(int x, int y,Mat &frame){
-	//use some of the openCV drawing functions to draw crosshairs
-	//on your tracked image!
-
-    //UPDATE:JUNE 18TH, 2013
-    //added 'if' and 'else' statements to prevent
-    //memory errors from writing off the screen (ie. (-25,-25) is not within the window!)
-
-	circle(frame,Point(x,y),20,Scalar(0,255,0),2);
-    if(y-25>0)
-    line(frame,Point(x,y),Point(x,y-25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,0),Scalar(0,255,0),2);
-    if(y+25<FRAME_HEIGHT)
-    line(frame,Point(x,y),Point(x,y+25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,FRAME_HEIGHT),Scalar(0,255,0),2);
-    if(x-25>0)
-    line(frame,Point(x,y),Point(x-25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(0,y),Scalar(0,255,0),2);
-    if(x+25<FRAME_WIDTH)
-    line(frame,Point(x,y),Point(x+25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(FRAME_WIDTH,y),Scalar(0,255,0),2);
-
-	putText(frame,intToString(x)+","+intToString(y),Point(x,y+30),1,1,Scalar(0,255,0),2);
-
+void drawAxis(Mat& img, Point p, Point q, Scalar colour, const float scale = 0.2)
+{
+    double angle;
+    double hypotenuse;
+    angle = atan2( (double) p.y - q.y, (double) p.x - q.x ); // angle in radians
+    hypotenuse = sqrt( (double) (p.y - q.y) * (p.y - q.y) + (p.x - q.x) * (p.x - q.x));
+//    double degrees = angle * 180 / CV_PI; // convert radians to degrees (0-180 range)
+//    cout << "Degrees: " << abs(degrees - 180) << endl; // angle in 0-360 degrees range
+    // Here we lengthen the arrow by a factor of scale
+    q.x = (int) (p.x - scale * hypotenuse * cos(angle));
+    q.y = (int) (p.y - scale * hypotenuse * sin(angle));
+    line(img, p, q, colour, 1, CV_AA);
+    // create the arrow hooks
+    p.x = (int) (q.x + 9 * cos(angle + CV_PI / 4));
+    p.y = (int) (q.y + 9 * sin(angle + CV_PI / 4));
+    line(img, p, q, colour, 1, CV_AA);
+    p.x = (int) (q.x + 9 * cos(angle - CV_PI / 4));
+    p.y = (int) (q.y + 9 * sin(angle - CV_PI / 4));
+    line(img, p, q, colour, 1, CV_AA);
 }
-void morphOps(Mat &thresh){
-	//create structuring element that will be used to "dilate" and "erode" image.
-	//the element chosen here is a 3px by 3px rectangle
-
-	Mat erodeElement = getStructuringElement( MORPH_RECT,Size(3,3));
-    //dilate with larger element so make sure object is nicely visible
-	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(8,8));
-
-	erode(thresh,thresh,erodeElement);
-	erode(thresh,thresh,erodeElement);
-
-	dilate(thresh,thresh,dilateElement);
-	dilate(thresh,thresh,dilateElement);
-}
-
-void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed) {
-	Mat temp;
-	threshold.copyTo(temp);
-
-	//these two vectors needed for output of findContours
-	vector< vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-
-	//find contours of filtered image using openCV findContours function
-	findContours(temp,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
-
-	//use moments method to find our filtered object
-	double refArea = 0;
-	bool objectFound = false;
-	if (hierarchy.size() > 0) {
-		int numObjects = hierarchy.size();
-
-        //if number of objects greater than MAX_NUM_OBJECTS we have a noisy filter
-        if(numObjects<MAX_NUM_OBJECTS) {
-			for (int index = 0; index >= 0; index = hierarchy[index][0]) {
-
-				Moments moment = moments((cv::Mat)contours[index]);
-				double area = moment.m00;
-
-				//if the area is less than 20 px by 20px then it is probably just noise
-				//if the area is the same as the 3/2 of the image size, probably just a bad filter
-				//we only want the object with the largest area so we safe a reference area each
-				//iteration and compare it to the area in the next iteration.
-                if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea) {
-					x = moment.m10/area;
-					y = moment.m01/area;
-					objectFound = true;
-					refArea = area;
-				} else {
-					objectFound = false;
-				}
-			}
-			//let user know you found an object
-			if(objectFound ==true) {
-				putText(cameraFeed,"Tracking Object",Point(0,50),2,1,Scalar(0,255,0),2);
-				//draw object location on screen
-				drawObject(x,y,cameraFeed);
-			}
-		} else {
-			putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(0,50),1,2,Scalar(0,0,255),2);
-		}
-	}
+double getOrientation(const vector<Point> &pts, Mat &img)
+{
+    //Construct a buffer used by the pca analysis
+    int sz = static_cast<int>(pts.size());
+    Mat data_pts = Mat(sz, 2, CV_64FC1);
+    for (int i = 0; i < data_pts.rows; ++i)
+    {
+        data_pts.at<double>(i, 0) = pts[i].x;
+        data_pts.at<double>(i, 1) = pts[i].y;
+    }
+    //Perform PCA analysis
+    PCA pca_analysis(data_pts, Mat(), CV_PCA_DATA_AS_ROW);
+    //Store the center of the object
+    Point cntr = Point(static_cast<int>(pca_analysis.mean.at<double>(0, 0)),
+                      static_cast<int>(pca_analysis.mean.at<double>(0, 1)));
+    //Store the eigenvalues and eigenvectors
+    vector<Point2d> eigen_vecs(2);
+    vector<double> eigen_val(2);
+    for (int i = 0; i < 2; ++i)
+    {
+        eigen_vecs[i] = Point2d(pca_analysis.eigenvectors.at<double>(i, 0),
+                                pca_analysis.eigenvectors.at<double>(i, 1));
+        eigen_val[i] = pca_analysis.eigenvalues.at<double>(0, i);
+    }
+    // Draw the principal components
+    circle(img, cntr, 3, Scalar(255, 0, 255), 2);
+    Point p1 = cntr + 0.02 * Point(static_cast<int>(eigen_vecs[0].x * eigen_val[0]), static_cast<int>(eigen_vecs[0].y * eigen_val[0]));
+    Point p2 = cntr - 0.02 * Point(static_cast<int>(eigen_vecs[1].x * eigen_val[1]), static_cast<int>(eigen_vecs[1].y * eigen_val[1]));
+    drawAxis(img, cntr, p1, Scalar(0, 255, 0), 1);
+    drawAxis(img, cntr, p2, Scalar(255, 255, 0), 5);
+    double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
+    return angle;
 }
 
 int main(int argc, char* argv[]) {
@@ -191,8 +161,8 @@ int main(int argc, char* argv[]) {
 	//matrix storage for binary threshold image
 	Mat threshold;
 
-	//matrix for HoughCircles
-	Mat circletje;
+	//matrix for canny
+	Mat canny_output;
 
 	//x and y values for the location of the object
 	int x=0, y=0;
@@ -204,7 +174,7 @@ int main(int argc, char* argv[]) {
 	VideoCapture capture;
 
 	//open capture object at location zero (default location for webcam)
-	capture.open("SingleColors.mp4");
+	capture.open("MeasuringAngle.mp4");
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
@@ -228,41 +198,26 @@ int main(int argc, char* argv[]) {
 		//threshold matrix
 		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
 		
-		//perform morphological operations on thresholded image to eliminate noise
-		//and emphasize the filtered object(s)
-		if(useMorphOps)
-			morphOps(threshold);
-		
-		//pass in thresholded frame to our object tracking function
-		//this function will return the x and y coordinates of the
-		//filtered object
-		if(trackObjects)
-			trackFilteredObject(x,y,threshold,cameraFeed);
-
-		/// Reduce the noise so we avoid false circle detection
-		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-
-		vector<Vec3f> circles;
-
-		/// Apply the Hough Transform to find the circles
-		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
-
-		/// Draw the circles detected
-		for( size_t i = 0; i < circles.size(); i++ )
-		{
-			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-			int radius = cvRound(circles[i][2]);
-		      // circle center
-			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
-		      // circle outline
-			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
-		}
+	    vector<Vec4i> hierarchy;
+	    vector<vector<Point> > contours;
+	    findContours(threshold, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+	    for (size_t i = 0; i < contours.size(); ++i)
+	    {
+	        // Calculate the area of each contour
+	        double area = contourArea(contours[i]);
+	        // Ignore contours that are too small or too large
+	        if (area < 1e2 || 1e5 < area) continue;
+	        // Draw each contour only for visualisation purposes
+	        drawContours(cameraFeed, contours, static_cast<int>(i), Scalar(0, 0, 255), 2, 8, hierarchy, 0);
+	        // Find the orientation of each shape
+	        getOrientation(contours[i], cameraFeed);
+	    }
 
 		//show frames 
 		imshow(windowName2,threshold);
 		imshow(windowName,cameraFeed);
 		imshow(windowName1,HSV);
-		imshow(windowName3,circletje);
+		//imshow(windowName3,drawing);
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
