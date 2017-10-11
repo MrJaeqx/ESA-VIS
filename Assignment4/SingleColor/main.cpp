@@ -190,6 +190,8 @@ int main(int argc, char* argv[])
 	Mat HSV;
 	//matrix storage for binary threshold image
 	Mat threshold;
+
+	Mat circletje;
 	//x and y values for the location of the object
 	int x=0, y=0;
 	//create slider bars for HSV filtering
@@ -197,7 +199,7 @@ int main(int argc, char* argv[])
 	//video capture object to acquire webcam feed
 	VideoCapture capture;
 	//open capture object at location zero (default location for webcam)
-	capture.open(0);
+	capture.open("SingleColors.mp4");
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
@@ -205,7 +207,12 @@ int main(int argc, char* argv[])
 	//all of our operations will be performed within this loop
 	while(1){
 		//store image to matrix
-		capture.read(cameraFeed);
+		bool frame = capture.read(cameraFeed);
+
+		if(!frame) {
+			capture.set(CV_CAP_PROP_POS_FRAMES, 0);
+			continue;
+		}
 		//convert frame from BGR to HSV colorspace
 		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
 		//filter HSV image between values and store filtered image to
@@ -221,11 +228,30 @@ int main(int argc, char* argv[])
 		if(trackObjects)
 			trackFilteredObject(x,y,threshold,cameraFeed);
 
-		//show frames 
+		  /// Reduce the noise so we avoid false circle detection
+		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
+
+		vector<Vec3f> circles;
+
+		  /// Apply the Hough Transform to find the circles
+		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+
+		  /// Draw the circles detected
+		for( size_t i = 0; i < circles.size(); i++ )
+		{
+			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+			int radius = cvRound(circles[i][2]);
+		      // circle center
+			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
+		      // circle outline
+			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
+		}
+
+		   //show frames 
 		imshow(windowName2,threshold);
 		imshow(windowName,cameraFeed);
 		imshow(windowName1,HSV);
-		
+		imshow(windowName3,circletje);
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command

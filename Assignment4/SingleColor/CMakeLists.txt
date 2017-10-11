@@ -9,6 +9,6 @@ PROJECT( cppInterface  )
 # sources to include
 include_directories (.)
 FIND_PACKAGE( OpenCV REQUIRED )
-ADD_EXECUTABLE( cppInterface.out  objectTrackingTutorial.cpp)
+ADD_EXECUTABLE( cppInterface.out  main.cpp)
 TARGET_LINK_LIBRARIES( cppInterface.out ${OpenCV_LIBS} )
 
