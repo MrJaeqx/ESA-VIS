@@ -38,5 +38,5 @@ For this part of the assignment we need to detect the circles of the Euro coins 
 
 The [tutorial](https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_circle/hough_circle.html) provided in the assignment needed a little tweaking to work on the Euro images. We needed to change the kernel size of the blur and in the HoughCircle we changed the upper threshold for the internal Canny edge detector to 200, the threshold for center detection to 30 and the minimum radius to be detected to 30 pixels.  
   
-![Euro1](./euro_1.jpg)
-![Euro2](./euro_2.jpg)
+![Euro1](./euro_1.png)
+![Euro2](./euro_2.png)
