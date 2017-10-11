@@ -21,22 +21,16 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv/cv.h>
-#include <opencv2/core/core.hpp>
-#include <math.h>
-
-//#include "opencv2/core.hpp"
-#include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 using namespace cv;
 
 //initial min and max HSV filter values.
 //these will be changed using trackbars
 int H_MIN = 0;
-int H_MAX = 180;
-int S_MIN = 182;
+int H_MAX = 256;
+int S_MIN = 170;
 int S_MAX = 256;
-int V_MIN = 149;
+int V_MIN = 120;
 int V_MAX = 256;
 
 //default capture width and height
@@ -93,75 +87,6 @@ void createTrackbars(){
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
 }
 
-void drawAxis(Mat& img, Point p, Point q, Scalar colour, const float scale = 0.2)
-{
-    double angle;
-    double hypotenuse;
-    angle = atan2( (double) p.y - q.y, (double) p.x - q.x ); // angle in radians
-    hypotenuse = sqrt( (double) (p.y - q.y) * (p.y - q.y) + (p.x - q.x) * (p.x - q.x));
-//    double degrees = angle * 180 / CV_PI; // convert radians to degrees (0-180 range)
-//    cout << "Degrees: " << abs(degrees - 180) << endl; // angle in 0-360 degrees range
-    // Here we lengthen the arrow by a factor of scale
-    q.x = (int) (p.x - scale * hypotenuse * cos(angle));
-    q.y = (int) (p.y - scale * hypotenuse * sin(angle));
-    line(img, p, q, colour, 1, CV_AA);
-    // create the arrow hooks
-    p.x = (int) (q.x + 9 * cos(angle + CV_PI / 4));
-    p.y = (int) (q.y + 9 * sin(angle + CV_PI / 4));
-    line(img, p, q, colour, 1, CV_AA);
-    p.x = (int) (q.x + 9 * cos(angle - CV_PI / 4));
-    p.y = (int) (q.y + 9 * sin(angle - CV_PI / 4));
-    line(img, p, q, colour, 1, CV_AA);
-}
-double getOrientation(const vector<Point> &pts, Mat &img)
-{
-    //Construct a buffer used by the pca analysis
-    int sz = static_cast<int>(pts.size());
-    Mat data_pts = Mat(sz, 2, CV_64FC1);
-    for (int i = 0; i < data_pts.rows; ++i)
-    {
-        data_pts.at<double>(i, 0) = pts[i].x;
-        data_pts.at<double>(i, 1) = pts[i].y;
-    }
-    //Perform PCA analysis
-    PCA pca_analysis(data_pts, Mat(), CV_PCA_DATA_AS_ROW);
-    //Store the center of the object
-    Point cntr = Point(static_cast<int>(pca_analysis.mean.at<double>(0, 0)),
-                      static_cast<int>(pca_analysis.mean.at<double>(0, 1)));
-    //Store the eigenvalues and eigenvectors
-    vector<Point2d> eigen_vecs(2);
-    vector<double> eigen_val(2);
-    for (int i = 0; i < 2; ++i)
-    {
-        eigen_vecs[i] = Point2d(pca_analysis.eigenvectors.at<double>(i, 0),
-                                pca_analysis.eigenvectors.at<double>(i, 1));
-        eigen_val[i] = pca_analysis.eigenvalues.at<double>(0, i);
-    }
-    // Draw the principal components
-    circle(img, cntr, 3, Scalar(255, 0, 255), 2);
-    Point p1 = cntr + 0.02 * Point(static_cast<int>(eigen_vecs[0].x * eigen_val[0]), static_cast<int>(eigen_vecs[0].y * eigen_val[0]));
-    Point p2 = cntr - 0.02 * Point(static_cast<int>(eigen_vecs[1].x * eigen_val[1]), static_cast<int>(eigen_vecs[1].y * eigen_val[1]));
-    drawAxis(img, cntr, p1, Scalar(0, 255, 0), 1);
-    drawAxis(img, cntr, p2, Scalar(255, 255, 0), 5);
-    double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
-
-	char buffer[64];
-	sprintf(buffer, "Angle: %.3f", angle*(180/M_PI));
-	p1.x += 10;
-	p1.y -= 10;
-	putText(img, buffer, p1, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,255,255), 1, CV_AA, false);
-	
-
-    return angle;
-}
-
-int erosion_elem = 0;
-int erosion_size = 10;
-int dilation_elem = 0;
-int dilation_size = 10;
-int const max_elem = 2;
-int const max_kernel_size = 21;
-
 int main(int argc, char* argv[]) {
 	//some boolean variables for different functionality within this
 	//program
@@ -177,8 +102,8 @@ int main(int argc, char* argv[]) {
 	//matrix storage for binary threshold image
 	Mat threshold;
 
-	//matrix for canny
-	Mat canny_output;
+	//matrix for HoughCircles
+	Mat circletje;
 
 	//x and y values for the location of the object
 	int x=0, y=0;
@@ -209,60 +134,83 @@ int main(int argc, char* argv[]) {
 		
 		//convert frame from BGR to HSV colorspace
 		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
+
+		vector<Vec3f> circlesY;
+		vector<Vec3f> circlesB;
+
+		vector<Vec3f> circles;
 		
+		//filter HSV image between values and store filtered image to
+		//threshold matrix
+		inRange(HSV,Scalar(0,132,99),Scalar(256,256,228),threshold);
+		
+		/// Reduce the noise so we avoid false circle detection
+		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
+
+		/// Apply the Hough Transform to find the circles
+		HoughCircles( circletje, circlesY, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+
+		//filter HSV image between values and store filtered image to
+		//threshold matrix
+		inRange(HSV,Scalar(0,177,0),Scalar(139,256,256),threshold);
+		
+		/// Reduce the noise so we avoid false circle detection
+		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
+
+		/// Apply the Hough Transform to find the circles
+		HoughCircles( circletje, circlesB, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+
 		//filter HSV image between values and store filtered image to
 		//threshold matrix
 		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
 		
+		/// Reduce the noise so we avoid false circle detection
+		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
+
+		
+
+		/// Apply the Hough Transform to find the circles
+		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+
+
+		/// Draw the circles detected
+		for( size_t i = 0; i < circlesY.size(); i++ )
 		{
-			int erosion_type;
-			if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
-			else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
-			else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
-		
-			Mat element = getStructuringElement( erosion_type,
-												Size( 2*erosion_size + 1, 2*erosion_size+1 ),
-												Point( erosion_size, erosion_size ) );
-		
-			/// Apply the erosion operation
-			erode( threshold, threshold, element );
+			Point center(cvRound(circlesY[i][0]), cvRound(circlesY[i][1]));
+			int radius = cvRound(circlesY[i][2]);
+		      // circle center
+			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
+		      // circle outline
+			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
 		}
 
-		GaussianBlur( threshold, threshold, Size(21,21), 2, 2 );		
-
+		/// Draw the circles detected
+		for( size_t i = 0; i < circlesB.size(); i++ )
 		{
-			int dilation_type;
-			if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
-			else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
-			else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
-		
-			Mat element = getStructuringElement( dilation_type,
-												Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-												Point( dilation_size, dilation_size ) );
-			/// Apply the dilation operation
-			dilate( threshold, threshold, element );
+			Point center(cvRound(circlesB[i][0]), cvRound(circlesB[i][1]));
+			int radius = cvRound(circlesB[i][2]);
+		      // circle center
+			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
+		      // circle outline
+			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
 		}
 
-	    vector<Vec4i> hierarchy;
-	    vector<vector<Point> > contours;
-	    findContours(threshold, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-	    for (size_t i = 0; i < contours.size(); ++i)
-	    {
-	        // Calculate the area of each contour
-	        double area = contourArea(contours[i]);
-	        // Ignore contours that are too small or too large
-	        if (area < 1e4 || 1e5 < area) continue;
-	        // Draw each contour only for visualisation purposes
-	        drawContours(cameraFeed, contours, static_cast<int>(i), Scalar(0, 0, 255), 2, 8, hierarchy, 0);
-	        // Find the orientation of each shape
-	        getOrientation(contours[i], cameraFeed);
-	    }
+		/// Draw the circles detected
+		for( size_t i = 0; i < circles.size(); i++ )
+		{
+			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+			int radius = cvRound(circles[i][2]);
+		      // circle center
+			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
+		      // circle outline
+			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
+		}
 
 		//show frames 
 		imshow(windowName2,threshold);
 		imshow(windowName,cameraFeed);
 		imshow(windowName1,HSV);
-		//imshow(windowName3,drawing);
+		imshow(windowName3,circletje);
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
