@@ -22,6 +22,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv/cv.h>
 #include <opencv2/core/core.hpp>
+#include <math.h>
 
 //#include "opencv2/core.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
@@ -143,6 +144,9 @@ double getOrientation(const vector<Point> &pts, Mat &img)
     drawAxis(img, cntr, p1, Scalar(0, 255, 0), 1);
     drawAxis(img, cntr, p2, Scalar(255, 255, 0), 5);
     double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
+
+    printf("Angle: %f\n", angle*(180/M_PI));
+
     return angle;
 }
 
@@ -206,7 +210,7 @@ int main(int argc, char* argv[]) {
 	        // Calculate the area of each contour
 	        double area = contourArea(contours[i]);
 	        // Ignore contours that are too small or too large
-	        if (area < 1e2 || 1e5 < area) continue;
+	        if (area < 1e4 || 1e5 < area) continue;
 	        // Draw each contour only for visualisation purposes
 	        drawContours(cameraFeed, contours, static_cast<int>(i), Scalar(0, 0, 255), 2, 8, hierarchy, 0);
 	        // Find the orientation of each shape
