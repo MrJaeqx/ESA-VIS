@@ -49,9 +49,10 @@ int main(int argc, char** argv) {
     Mat dst, cdst;
     Canny(src, dst, 50, 200, 3);
     cvtColor(dst, cdst, CV_GRAY2BGR);
-
+    GaussianBlur( cdst, cdst, Size(9,9), 2, 2 );
+    
     vector<Vec4i> lines;
-    HoughLinesP(dst, lines, 1, 2*CV_PI/180, 50, 50, 10 );
+    HoughLinesP(dst, lines, 1, CV_PI/180.0, 50, 50, 10 );
 
     vector<LineThing> lineThings;
 
@@ -150,11 +151,24 @@ int main(int argc, char** argv) {
         // We can't know which directions the vectors need to be,
         // so we just give both angles. 
         printf("\tangle: %.2lf° or %.2lf°\n", angle1, angle2);
+
+        char intersectTag[64];
+        sprintf(intersectTag, "%d", i);
+        int baseline = 1;
+        Size size = getTextSize(intersectTag, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+    
+        bool flip = false;
+        if (intersects[i].x + size.width >= cdst.cols) {
+            flip = true;
+        }
+
+        putText(cdst, intersectTag, intersects[i], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,255,255), 1, CV_AA, flip);
     }
 
     imshow("source", src);
     imshow("detected lines", cdst);
-
+    imwrite("./hough_res.png", cdst);
+    
     waitKey();
 
     return 0;
