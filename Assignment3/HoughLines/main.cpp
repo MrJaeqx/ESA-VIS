@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     GaussianBlur( cdst, cdst, Size(9,9), 2, 2 );
     
     vector<Vec4i> lines;
-    HoughLinesP(dst, lines, 1, 2*CV_PI/180, 50, 50, 10 );
+    HoughLinesP(dst, lines, 1, CV_PI/180.0, 50, 50, 10 );
 
     vector<LineThing> lineThings;
 
@@ -167,7 +167,8 @@ int main(int argc, char** argv) {
 
     imshow("source", src);
     imshow("detected lines", cdst);
-
+    imwrite("./hough_res.png", cdst);
+    
     waitKey();
 
     return 0;
