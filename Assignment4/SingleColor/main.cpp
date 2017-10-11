@@ -29,9 +29,9 @@ using namespace cv;
 //these will be changed using trackbars
 int H_MIN = 0;
 int H_MAX = 256;
-int S_MIN = 0;
+int S_MIN = 170;
 int S_MAX = 256;
-int V_MIN = 0;
+int V_MIN = 120;
 int V_MAX = 256;
 //default capture width and height
 const int FRAME_WIDTH = 640;
