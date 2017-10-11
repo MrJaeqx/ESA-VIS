@@ -20,12 +20,12 @@ int main(int argc, char** argv)
   cvtColor( src, src_gray, CV_BGR2GRAY );
 
   /// Reduce the noise so we avoid false circle detection
-  GaussianBlur( src_gray, src_gray, Size(13,13), 2, 2 );
+  GaussianBlur( src_gray, src_gray, Size(11, 11), 2, 2);
 
   vector<Vec3f> circles;
 
   /// Apply the Hough Transform to find the circles
-  HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 25, 100, 30, 0 );
+  HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 30, 30, 0);
 
   /// Draw the circles detected
   for( size_t i = 0; i < circles.size(); i++ )
