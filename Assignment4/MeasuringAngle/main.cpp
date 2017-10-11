@@ -146,6 +146,13 @@ double getOrientation(const vector<Point> &pts, Mat &img)
     return angle;
 }
 
+int erosion_elem = 0;
+int erosion_size = 10;
+int dilation_elem = 0;
+int dilation_size = 10;
+int const max_elem = 2;
+int const max_kernel_size = 21;
+
 int main(int argc, char* argv[]) {
 	//some boolean variables for different functionality within this
 	//program
@@ -198,6 +205,35 @@ int main(int argc, char* argv[]) {
 		//threshold matrix
 		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
 		
+		{
+			int erosion_type;
+			if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+			else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+			else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+		
+			Mat element = getStructuringElement( erosion_type,
+												Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+												Point( erosion_size, erosion_size ) );
+		
+			/// Apply the erosion operation
+			erode( threshold, threshold, element );
+		}
+
+		GaussianBlur( threshold, threshold, Size(21,21), 2, 2 );		
+
+		{
+			int dilation_type;
+			if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+			else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+			else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+		
+			Mat element = getStructuringElement( dilation_type,
+												Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+												Point( dilation_size, dilation_size ) );
+			/// Apply the dilation operation
+			dilate( threshold, threshold, element );
+		}
+
 	    vector<Vec4i> hierarchy;
 	    vector<vector<Point> > contours;
 	    findContours(threshold, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
