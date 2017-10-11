@@ -44,4 +44,5 @@ The [tutorial](https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_
   
 On the images below you can see the result of the circle detection.
 ![Euro1](./euro_1.png)  
+
 ![Euro2](./euro_2.png)
