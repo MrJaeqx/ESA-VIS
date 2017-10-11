@@ -145,7 +145,10 @@ double getOrientation(const vector<Point> &pts, Mat &img)
     drawAxis(img, cntr, p2, Scalar(255, 255, 0), 5);
     double angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
 
-    printf("Angle: %f\n", angle*(180/M_PI));
+	char buffer[64];
+	sprintf(buffer, "Angle: %f\n", angle*(180/M_PI));
+	putText(img, buffer, p1, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,255,255), 1, CV_AA, false);
+	
 
     return angle;
 }
