@@ -31,3 +31,12 @@ Finally, these results are printed in the terminal and drawn on the image:
 Please note that the `0` label for `P0` is outside the image. We tried to correct this by using OpenCV functions to calculate the width of strings, but it didn't work out.
 
 As you can see, we print both angles of the intersections. We did this because we figured we couldn't easily determine which angle was the asked angle, and especially with other kinds of figures with acute angles or reflex angles.
+
+## Euros
+
+For this part of the assignment we need to detect the circles of the Euro coins on the provided images. We used HoughCircles method to retreive the center and the radius of the circle. 
+
+The [tutorial](https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_circle/hough_circle.html) provided in the assignment needed a little tweaking to work on the Euro images. We needed to change the kernel size of the blur and in the HoughCircle we changed the upper threshold for the internal Canny edge detector to 200, the threshold for center detection to 30 and the minimum radius to be detected to 30 pixels.  
+  
+![Euro1](./euro_1.jpg)
+![Euro2](./euro_2.jpg)
