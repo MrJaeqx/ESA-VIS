@@ -23,10 +23,7 @@
 #include <opencv/cv.h>
 #include <opencv2/core/core.hpp>
 #include <math.h>
-
-//#include "opencv2/core.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 using namespace cv;
 
@@ -43,55 +40,8 @@ int V_MAX = 256;
 const int FRAME_WIDTH = 640;
 const int FRAME_HEIGHT = 480;
 
-//max number of objects to be detected in frame
-const int MAX_NUM_OBJECTS=50;
-
-//minimum and maximum object area
-const int MIN_OBJECT_AREA = 20*20;
-const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
-
 //names that will appear at the top of each window
-const string windowName = "Original Image";
-const string windowName1 = "HSV Image";
-const string windowName2 = "Thresholded Image";
-const string windowName3 = "After Blur";
-const string trackbarWindowName = "Trackbars";
-
-void on_trackbar( int, void* ) {
-	//This function gets called whenever a
-	// trackbar position is changed
-}
-
-string intToString(int number){
-	std::stringstream ss;
-	ss << number;
-	return ss.str();
-}
-
-void createTrackbars(){
-	//create window for trackbars
-
-    namedWindow(trackbarWindowName,0);
-	//create memory to store trackbar name on window
-	char TrackbarName[50];
-	sprintf( TrackbarName, "H_MIN %d", H_MIN);
-	sprintf( TrackbarName, "H_MAX %d", H_MAX);
-	sprintf( TrackbarName, "S_MIN %d", S_MIN);
-	sprintf( TrackbarName, "S_MAX %d", S_MAX);
-	sprintf( TrackbarName, "V_MIN %d", V_MIN);
-	sprintf( TrackbarName, "V_MAX %d", V_MAX);
-	//create trackbars and insert them into window
-	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH), 
-	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->      
-    createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
-    createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
-    createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
-    createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
-    createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
-    createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
-}
+const string windowName = "Angle";
 
 void drawAxis(Mat& img, Point p, Point q, Scalar colour, const float scale = 0.2)
 {
@@ -168,23 +118,11 @@ int main(int argc, char* argv[]) {
     bool trackObjects = false;
     bool useMorphOps = false;
 
-	//Matrix to store each frame of the webcam feed
+	//Matrices
 	Mat cameraFeed;
-
-	//matrix storage for HSV image
 	Mat HSV;
-
-	//matrix storage for binary threshold image
 	Mat threshold;
-
-	//matrix for canny
 	Mat canny_output;
-
-	//x and y values for the location of the object
-	int x=0, y=0;
-
-	//create slider bars for HSV filtering
-	createTrackbars();
 
 	//video capture object to acquire webcam feed
 	VideoCapture capture;
@@ -259,10 +197,7 @@ int main(int argc, char* argv[]) {
 	    }
 
 		//show frames 
-		imshow(windowName2,threshold);
 		imshow(windowName,cameraFeed);
-		imshow(windowName1,HSV);
-		//imshow(windowName3,drawing);
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command

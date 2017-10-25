@@ -55,9 +55,7 @@ int main(int argc, char* argv[]) {
 	Mat circletje;
 
 	// Vectors for detected circles
-	vector<Vec3f> circlesR;
-	vector<Vec3f> circlesY;
-	vector<Vec3f> circlesB;
+	vector<Vec3f> circles;
 
 	//video capture object to acquire webcam feed
 	VideoCapture capture;
@@ -87,21 +85,20 @@ int main(int argc, char* argv[]) {
 		//RED BALL
 		inRange(HSV,Scalar(0,151,97),Scalar(3,256,148),threshold);
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-		HoughCircles( circletje, circlesR, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+		drawCircles(cameraFeed, circles);
 
 		//YELLOW BALL
 		inRange(HSV,Scalar(5,116,109),Scalar(107,256,256),threshold);
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-		HoughCircles( circletje, circlesY, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+		drawCircles(cameraFeed, circles);
 
 		// BLUE BALL
 		inRange(HSV,Scalar(78,148,0),Scalar(133,225,256),threshold);
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-		HoughCircles( circletje, circlesB, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
-
-		drawCircles(cameraFeed, circlesR);
-		drawCircles(cameraFeed, circlesY);
-		drawCircles(cameraFeed, circlesB);
+		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
+		drawCircles(cameraFeed, circles);
 
 		//show frames 
 		imshow(windowName,cameraFeed);
