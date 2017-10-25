@@ -15,7 +15,7 @@ This image is fed to `findContours`, which data is then used in finding the orie
 
 After applying angle detection, we saw the center point jumping around. This is due to the jugs handle being sometimes detected, so the COG moves around. We applied some erosion, gaussian blur and dilation to get the image detection more solid, which worked well. 
   
-<IMAGE>
+![MeasuringAngle](./MeasuringAngle.png)
 
 ## Single Color
 
@@ -23,10 +23,10 @@ For the single-color detection, we used the code supplied by the assignment. We 
   
 Now we got the application running, we can play with the parameters using the trackbars. We found the best parameters for the red, yellow and blue ball which are usefull for the next assignment.  
   
-<IMAGE>
+![SingleColor](./SingleColor.png)
 
 ## Multiple Color
 
 The multiple-color detection is almost the same as the single-color detection, we just have to execute this three times, for every color one time. We hardcoded the values we found in the single-color detection.  
   
-<IMAGE>
+![MultipleObjects](./MultipleObjects.png)
