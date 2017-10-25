@@ -24,67 +24,22 @@
 
 using namespace cv;
 
-//initial min and max HSV filter values.
-//these will be changed using trackbars
-int H_MIN = 0;
-int H_MAX = 256;
-int S_MIN = 170;
-int S_MAX = 256;
-int V_MIN = 120;
-int V_MAX = 256;
-
 //default capture width and height
 const int FRAME_WIDTH = 640;
 const int FRAME_HEIGHT = 480;
 
-//max number of objects to be detected in frame
-const int MAX_NUM_OBJECTS=50;
-
-//minimum and maximum object area
-const int MIN_OBJECT_AREA = 20*20;
-const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
-
 //names that will appear at the top of each window
-const string windowName = "Original Image";
-const string windowName1 = "HSV Image";
-const string windowName2 = "Thresholded Image";
-const string windowName3 = "After Blur";
-const string trackbarWindowName = "Trackbars";
+const string windowName = "Ball detection";
 
-void on_trackbar( int, void* ) {
-	//This function gets called whenever a
-	// trackbar position is changed
-}
-
-string intToString(int number){
-	std::stringstream ss;
-	ss << number;
-	return ss.str();
-}
-
-void createTrackbars(){
-	//create window for trackbars
-
-    namedWindow(trackbarWindowName,0);
-	//create memory to store trackbar name on window
-	char TrackbarName[50];
-	sprintf( TrackbarName, "H_MIN %d", H_MIN);
-	sprintf( TrackbarName, "H_MAX %d", H_MAX);
-	sprintf( TrackbarName, "S_MIN %d", S_MIN);
-	sprintf( TrackbarName, "S_MAX %d", S_MAX);
-	sprintf( TrackbarName, "V_MIN %d", V_MIN);
-	sprintf( TrackbarName, "V_MAX %d", V_MAX);
-	//create trackbars and insert them into window
-	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH), 
-	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->      
-    createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
-    createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
-    createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
-    createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
-    createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
-    createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
+void drawCircles(Mat image, vector<Vec3f> circles) {
+	for( size_t i = 0; i < circles.size(); i++ ) {
+		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		int radius = cvRound(circles[i][2]);
+	      // circle center
+		circle( image, center, 3, Scalar(0,255,0), -1, 8, 0 );
+	      // circle outline
+		circle( image, center, radius, Scalar(0,0,255), 3, 8, 0 );
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -93,23 +48,16 @@ int main(int argc, char* argv[]) {
     bool trackObjects = false;
     bool useMorphOps = false;
 
-	//Matrix to store each frame of the webcam feed
+	//Matrices
 	Mat cameraFeed;
-
-	//matrix storage for HSV image
 	Mat HSV;
-
-	//matrix storage for binary threshold image
 	Mat threshold;
-
-	//matrix for HoughCircles
 	Mat circletje;
 
-	//x and y values for the location of the object
-	int x=0, y=0;
-
-	//create slider bars for HSV filtering
-	createTrackbars();
+	// Vectors for detected circles
+	vector<Vec3f> circlesR;
+	vector<Vec3f> circlesY;
+	vector<Vec3f> circlesB;
 
 	//video capture object to acquire webcam feed
 	VideoCapture capture;
@@ -127,6 +75,7 @@ int main(int argc, char* argv[]) {
 		//store image to matrix
 		bool frame = capture.read(cameraFeed);
 
+		// If end of video restart
 		if(!frame) {
 			capture.set(CV_CAP_PROP_POS_FRAMES, 0);
 			continue;
@@ -135,82 +84,27 @@ int main(int argc, char* argv[]) {
 		//convert frame from BGR to HSV colorspace
 		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
 
-		vector<Vec3f> circlesY;
-		vector<Vec3f> circlesB;
-
-		vector<Vec3f> circles;
-		
-		//filter HSV image between values and store filtered image to
-		//threshold matrix
-		inRange(HSV,Scalar(0,132,99),Scalar(256,256,228),threshold);
-		
-		/// Reduce the noise so we avoid false circle detection
+		//RED BALL
+		inRange(HSV,Scalar(0,151,97),Scalar(3,256,148),threshold);
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
+		HoughCircles( circletje, circlesR, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
 
-		/// Apply the Hough Transform to find the circles
+		//YELLOW BALL
+		inRange(HSV,Scalar(5,116,109),Scalar(107,256,256),threshold);
+		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
 		HoughCircles( circletje, circlesY, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
 
-		//filter HSV image between values and store filtered image to
-		//threshold matrix
-		inRange(HSV,Scalar(0,177,0),Scalar(139,256,256),threshold);
-		
-		/// Reduce the noise so we avoid false circle detection
+		// BLUE BALL
+		inRange(HSV,Scalar(78,148,0),Scalar(133,225,256),threshold);
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-
-		/// Apply the Hough Transform to find the circles
 		HoughCircles( circletje, circlesB, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
 
-		//filter HSV image between values and store filtered image to
-		//threshold matrix
-		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
-		
-		/// Reduce the noise so we avoid false circle detection
-		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
-
-		
-
-		/// Apply the Hough Transform to find the circles
-		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);
-
-
-		/// Draw the circles detected
-		for( size_t i = 0; i < circlesY.size(); i++ )
-		{
-			Point center(cvRound(circlesY[i][0]), cvRound(circlesY[i][1]));
-			int radius = cvRound(circlesY[i][2]);
-		      // circle center
-			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
-		      // circle outline
-			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
-		}
-
-		/// Draw the circles detected
-		for( size_t i = 0; i < circlesB.size(); i++ )
-		{
-			Point center(cvRound(circlesB[i][0]), cvRound(circlesB[i][1]));
-			int radius = cvRound(circlesB[i][2]);
-		      // circle center
-			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
-		      // circle outline
-			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
-		}
-
-		/// Draw the circles detected
-		for( size_t i = 0; i < circles.size(); i++ )
-		{
-			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-			int radius = cvRound(circles[i][2]);
-		      // circle center
-			circle( cameraFeed, center, 3, Scalar(0,255,0), -1, 8, 0 );
-		      // circle outline
-			circle( cameraFeed, center, radius, Scalar(0,0,255), 3, 8, 0 );
-		}
+		drawCircles(cameraFeed, circlesR);
+		drawCircles(cameraFeed, circlesY);
+		drawCircles(cameraFeed, circlesB);
 
 		//show frames 
-		imshow(windowName2,threshold);
 		imshow(windowName,cameraFeed);
-		imshow(windowName1,HSV);
-		imshow(windowName3,circletje);
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
@@ -219,4 +113,3 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-
