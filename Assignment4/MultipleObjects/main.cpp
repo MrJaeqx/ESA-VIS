@@ -19,7 +19,9 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <vector>
 #include <opencv2/highgui/highgui.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 #include <opencv/cv.h>
 
 using namespace cv;
@@ -29,9 +31,9 @@ const int FRAME_WIDTH = 640;
 const int FRAME_HEIGHT = 480;
 
 //names that will appear at the top of each window
-const string windowName = "Ball detection";
+const std::string windowName = "Ball detection";
 
-void drawCircles(Mat image, vector<Vec3f> circles) {
+void drawCircles(Mat image, std::vector<Vec3f> circles) {
 	for( size_t i = 0; i < circles.size(); i++ ) {
 		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		int radius = cvRound(circles[i][2]);
@@ -55,7 +57,7 @@ int main(int argc, char* argv[]) {
 	Mat circletje;
 
 	// Vectors for detected circles
-	vector<Vec3f> circles;
+	std::vector<Vec3f> circles;
 
 	//video capture object to acquire webcam feed
 	VideoCapture capture;

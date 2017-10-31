@@ -41,7 +41,7 @@ const int FRAME_WIDTH = 640;
 const int FRAME_HEIGHT = 480;
 
 //names that will appear at the top of each window
-const string windowName = "Angle";
+const std::string windowName = "Angle";
 
 void drawAxis(Mat& img, Point p, Point q, Scalar colour, const float scale = 0.2)
 {
@@ -63,7 +63,7 @@ void drawAxis(Mat& img, Point p, Point q, Scalar colour, const float scale = 0.2
     p.y = (int) (q.y + 9 * sin(angle - CV_PI / 4));
     line(img, p, q, colour, 1, CV_AA);
 }
-double getOrientation(const vector<Point> &pts, Mat &img)
+double getOrientation(const std::vector<Point> &pts, Mat &img)
 {
     //Construct a buffer used by the pca analysis
     int sz = static_cast<int>(pts.size());
@@ -79,8 +79,8 @@ double getOrientation(const vector<Point> &pts, Mat &img)
     Point cntr = Point(static_cast<int>(pca_analysis.mean.at<double>(0, 0)),
                       static_cast<int>(pca_analysis.mean.at<double>(0, 1)));
     //Store the eigenvalues and eigenvectors
-    vector<Point2d> eigen_vecs(2);
-    vector<double> eigen_val(2);
+    std::vector<Point2d> eigen_vecs(2);
+    std::vector<double> eigen_val(2);
     for (int i = 0; i < 2; ++i)
     {
         eigen_vecs[i] = Point2d(pca_analysis.eigenvectors.at<double>(i, 0),
@@ -181,8 +181,8 @@ int main(int argc, char* argv[]) {
 			dilate( threshold, threshold, element );
 		}
 
-	    vector<Vec4i> hierarchy;
-	    vector<vector<Point> > contours;
+	    std::vector<Vec4i> hierarchy;
+	    std::vector<std::vector<Point> > contours;
 	    findContours(threshold, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 	    for (size_t i = 0; i < contours.size(); ++i)
 	    {

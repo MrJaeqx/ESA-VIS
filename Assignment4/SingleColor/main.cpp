@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 #include <opencv/cv.h>
 
 using namespace cv;
@@ -45,18 +46,18 @@ const int MIN_OBJECT_AREA = 20*20;
 const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
 
 //names that will appear at the top of each window
-const string windowName = "Original Image";
-const string windowName1 = "HSV Image";
-const string windowName2 = "Thresholded Image";
-const string windowName3 = "After Blur";
-const string trackbarWindowName = "Trackbars";
+const std::string windowName = "Original Image";
+const std::string windowName1 = "HSV Image";
+const std::string windowName2 = "Thresholded Image";
+const std::string windowName3 = "After Blur";
+const std::string trackbarWindowName = "Trackbars";
 
 void on_trackbar( int, void* ) {
 	//This function gets called whenever a
 	// trackbar position is changed
 }
 
-string intToString(int number){
+std::string intToString(int number){
 	std::stringstream ss;
 	ss << number;
 	return ss.str();
@@ -142,7 +143,7 @@ int main(int argc, char* argv[]) {
 		/// Reduce the noise so we avoid false circle detection
 		GaussianBlur( threshold, circletje, Size(9, 9), 2, 2);
 
-		vector<Vec3f> circles;
+		std::vector<Vec3f> circles;
 
 		/// Apply the Hough Transform to find the circles
 		HoughCircles( circletje, circles, CV_HOUGH_GRADIENT, 1, circletje.rows/8, 200, 30, 0, 35);

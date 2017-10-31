@@ -51,10 +51,10 @@ int main(int argc, char** argv) {
     cvtColor(dst, cdst, CV_GRAY2BGR);
     GaussianBlur( cdst, cdst, Size(9,9), 2, 2 );
     
-    vector<Vec4i> lines;
+    std::vector<Vec4i> lines;
     HoughLinesP(dst, lines, 1, CV_PI/180.0, 50, 50, 10 );
 
-    vector<LineThing> lineThings;
+    std::vector<LineThing> lineThings;
 
     // We use HoughLinesP to make OpenCV detect line pieces. This results in multiple lines
     // however, so we need to find out if the line pieces are on the line.
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     printf("LineThings: %d\n", (int)lineThings.size());
 
     // We make a new vector with lines that occur just once. This is FinalLines.
-    vector<int> okayIndexes;
+    std::vector<int> okayIndexes;
     for ( int i = 0; i < lineThings.size(); i++ ) {
         for (int j = 0; j < lineThings.size(); j++) {
             if (i == j) continue;
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 
     printf("okayIndexes: %d\n", (int)okayIndexes.size());
     
-    vector<LineThing> finalLines;
+    std::vector<LineThing> finalLines;
     for (int i = 0; i < okayIndexes.size(); i++) {
         finalLines.push_back(lineThings[okayIndexes[i]]);
     }

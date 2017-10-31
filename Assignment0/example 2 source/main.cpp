@@ -44,7 +44,7 @@ Point faceCenter(290, 280);
 Size faceSize(80, 110);
 int faceAngle = 15;
 
-string theText = "A face and two eyes";
+std::string theText = "A face and two eyes";
 int font = FONT_HERSHEY_SIMPLEX;
 int fontScale = 1;
 int fontThickness = 1;
