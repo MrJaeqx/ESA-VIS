@@ -27,13 +27,34 @@ void drawConvexityDefects(Mat & image ,
             int startidx = v[0]; Point ptStart(contours[index][startidx]);
             int endidx = v[1]; Point ptEnd(contours[index][endidx]);
             int faridx = v[2]; Point ptFar(contours[index][faridx]);
-            points.push_back(ptEnd);
+            points.push_back(ptStart);
             line(image, ptStart, ptFar, color, lineThickness, lineType);
             line(image, ptEnd, ptFar, color, lineThickness, lineType);
             circle(image, ptFar, 4, color, 2*lineThickness, lineType);
         }
     }
 
+}
+
+double rad2deg(double rad) {
+    return (rad*(180/M_PI));
+}
+
+double getOrientation(Point2f cog, Point2f p) {
+	double point_x = p.x - cog.x;
+	double point_y = p.y - cog.y;
+
+	double angle = atan2(point_y, point_x);
+
+
+    /*double numerator = cog.x * point_x + cog.y * point_y;
+    double denominator = sqrt(pow(cog.x, 2)+pow(cog.y, 2)) * sqrt(pow(point_x, 2)+pow(point_y, 2));
+    double angle = acos(numerator/denominator);
+    /*if (std::find(angles.begin(), angles.end(), angle) == angles.end()) {
+        angles.push_back(angle);
+    }, */
+
+    return angle;
 }
 
 
@@ -77,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     for( int i = 0; i < contours.size(); i++ ) {  
         convexHull( Mat(contours[i]), hullp[i], false );
-        convexHull( Mat(contours[i]), hulli[i], true );
+        convexHull( Mat(contours[i]), hulli[i], false );
         if (hulli[i].size() > 3)
             convexityDefects(contours[i], hulli[i], defects[i]);
     }
@@ -97,7 +118,7 @@ int main(int argc, char* argv[]) {
         drawContours( drawing, hullp, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
         
         for (int j = 0; j < hullp[i].size(); j++) {
-            circle(drawing, hullp[i][j], 8, color);
+            //circle(drawing, hullp[i][j], 8, color);
         }
     
         color = Scalar( 0, 255, 255 );
@@ -108,13 +129,13 @@ int main(int argc, char* argv[]) {
 
 
     /// Get the moments
-    vector<Moments> mu(contours.size() );
+    std::vector<Moments> mu(contours.size() );
     for( int i = 0; i < contours.size(); i++ ) { 
-        mu[i] = moments( contours[i], false ); 
+        mu[i] = moments( contours[i], false );
     }
 
     ///  Get the mass centers:
-    vector<Point2f> mc( contours.size() );
+    std::vector<Point2f> mc( contours.size() );
     Point com;
     for( int i = 0; i < contours.size(); i++ ) { 
         Scalar color = Scalar( 0, 0, 255 );
@@ -123,14 +144,28 @@ int main(int argc, char* argv[]) {
         com = mc[i];
     }
 
+    int baseline = 1;
+    int finger = 0;
+
+
     for (auto p : points) {
-        Scalar color = Scalar( 255, 0, 255 );
-        circle(drawing, p, 8, color);
-        line(drawing, com, p, color, 5);
+    	double angle = rad2deg(getOrientation(com, p));
+
+    	if(!(angle > 0 && angle < 90.0)) {
+	        Scalar color = Scalar( 255, 0, 255 );
+	        circle(drawing, p, 8, color);
+	        line(drawing, com, p, color, 5);
+
+			char intersectTag[64];
+	        sprintf(intersectTag, "Finger %d: %f",finger, angle);
+	        Size size = getTextSize(intersectTag, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+			putText(drawing, intersectTag, p, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,0,0), 1, CV_AA, false);
+			finger++;
+		}
     }
 
 	// Show your results
-	namedWindow("Convex Hull", WINDOW_NORMAL);
+	namedWindow("Convex Hull", CV_WINDOW_AUTOSIZE);
 	imshow("Convex Hull", drawing);
     
 	waitKey(0);
