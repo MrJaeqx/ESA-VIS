@@ -14,6 +14,7 @@ RNG rng(12345);
 void drawConvexityDefects(Mat & image , 
                           std::vector< std::vector<Point> > contours,     
                           std::vector< std::vector<Vec4i> > defects, 
+                          std::vector< Point > & points,
                           int index, 
                           const Scalar & color, 
                           int lineThickness = 1, 
@@ -26,6 +27,7 @@ void drawConvexityDefects(Mat & image ,
             int startidx = v[0]; Point ptStart(contours[index][startidx]);
             int endidx = v[1]; Point ptEnd(contours[index][endidx]);
             int faridx = v[2]; Point ptFar(contours[index][faridx]);
+            points.push_back(ptEnd);
             line(image, ptStart, ptFar, color, lineThickness, lineType);
             line(image, ptEnd, ptFar, color, lineThickness, lineType);
             circle(image, ptFar, 4, color, 2*lineThickness, lineType);
@@ -86,7 +88,8 @@ int main(int argc, char* argv[]) {
     }
 
     /// Draw contours + hullp results
-    Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
+    Mat drawing = src;
+    std::vector<Point> points;
     for( int i = 0; i< contours.size(); i++ ) {
         Scalar color = Scalar( 0, 0, 255 );
         drawContours( drawing, contours, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
@@ -98,12 +101,36 @@ int main(int argc, char* argv[]) {
         }
     
         color = Scalar( 0, 255, 255 );
-        drawConvexityDefects(drawing, contours, defects, i, color, 2);
+        drawConvexityDefects(drawing, contours, defects, points, i, color, 2);
         
     }
-    
+
+
+
+    /// Get the moments
+    vector<Moments> mu(contours.size() );
+    for( int i = 0; i < contours.size(); i++ ) { 
+        mu[i] = moments( contours[i], false ); 
+    }
+
+    ///  Get the mass centers:
+    vector<Point2f> mc( contours.size() );
+    Point com;
+    for( int i = 0; i < contours.size(); i++ ) { 
+        Scalar color = Scalar( 0, 0, 255 );
+        mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 ); 
+        circle(drawing, mc[i], 8, color);
+        com = mc[i];
+    }
+
+    for (auto p : points) {
+        Scalar color = Scalar( 255, 0, 255 );
+        circle(drawing, p, 8, color);
+        line(drawing, com, p, color, 5);
+    }
+
 	// Show your results
-	namedWindow("Convex Hull", CV_WINDOW_AUTOSIZE);
+	namedWindow("Convex Hull", WINDOW_NORMAL);
 	imshow("Convex Hull", drawing);
     
 	waitKey(0);
