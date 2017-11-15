@@ -68,22 +68,22 @@ int main(int argc, char* argv[]) {
         drawContours( drawing, contours, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
         drawContours( drawing, hullp, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     
-        /// Draw convexityDefects
-        for(int j=0; j<defects[i].size(); ++j) {
-            const Vec4i& v = defects[i][j];
-            float depth = v[3] / 256;
-            //  filter defects by depth
-            if (depth > 10) {
-                int startidx = v[0]; Point ptStart(contours[i][startidx]);
-                int endidx = v[1]; Point ptEnd(contours[i][endidx]);
-                int faridx = v[2]; Point ptFar(contours[i][faridx]);
+        // /// Draw convexityDefects
+        // for(int j=0; j<defects[i].size(); ++j) {
+        //     const Vec4i& v = defects[i][j];
+        //     float depth = v[3] / 256;
+        //     //  filter defects by depth
+        //     if (depth > 10) {
+        //         int startidx = v[0]; Point ptStart(contours[i][startidx]);
+        //         int endidx = v[1]; Point ptEnd(contours[i][endidx]);
+        //         int faridx = v[2]; Point ptFar(contours[i][faridx]);
 
-                line(drawing, ptStart, ptEnd, Scalar(0, 255, 0), 1);
-                line(drawing, ptStart, ptFar, Scalar(0, 255, 0), 1);
-                line(drawing, ptEnd, ptFar, Scalar(0, 255, 0), 1);
-                circle(drawing, ptFar, 4, Scalar(0, 255, 0), 2);
-            }
-        }
+        //         line(drawing, ptStart, ptEnd, Scalar(0, 255, 0), 1);
+        //         line(drawing, ptStart, ptFar, Scalar(0, 255, 0), 1);
+        //         line(drawing, ptEnd, ptFar, Scalar(0, 255, 0), 1);
+        //         circle(drawing, ptFar, 4, Scalar(0, 255, 0), 2);
+        //     }
+        // }
     }
     
 	// Show your results
