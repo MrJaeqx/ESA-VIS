@@ -31,10 +31,12 @@ int main(int argc, char* argv[]) {
 	// Convert it to hsv
 	cvtColor(src, HSV, COLOR_BGR2HSV);
     
-	inRange(HSV,Scalar(0,0,0),Scalar(255,255,128),HSV);
-    
 	// Reduce the noise so we avoid false noise detection
 	GaussianBlur(HSV, HSV, Size(11, 11), 2, 2);
+
+	inRange(HSV, Scalar(0,0,0), Scalar(255,255,191), HSV);
+    imshow("HSV", HSV);
+
     
 	/// Detect edges using Threshold
     threshold( HSV, threshold_output, thresh, 255, THRESH_BINARY );
@@ -50,7 +52,8 @@ int main(int argc, char* argv[]) {
     for( int i = 0; i < contours.size(); i++ ) {  
         convexHull( Mat(contours[i]), hullp[i], true );
         convexHull( Mat(contours[i]), hulli[i], true );
-        convexityDefects(contours[i], hulli[i], defects[i]);
+        if (hulli[i].size() > 3)
+            convexityDefects(contours[i], hulli[i], defects[i]);
     }
 
     for( int i = 0; i < contours.size(); i++ ) {  
