@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.8)
 # This is the name of the project
 PROJECT( cppInterface  )
 
+add_definitions(-std=c++11)
+
 # This is for recursively searching for other directories.
 # add_subdirectory (DirectoryName)
 
