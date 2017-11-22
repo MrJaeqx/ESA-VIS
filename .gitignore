@@ -41,3 +41,4 @@ CMakeFiles/
 .vscode/
 *.sublime-project
 *.sublime-workspace
+compile_commands.json
