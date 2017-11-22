@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -74,7 +74,27 @@ std::vector<Point> getCorners(std::string name, Mat src) {
     resizeWindow(name.c_str(), 800, 480);
 	imshow(name.c_str(), drawing);
     
-    return corners;
+    return dingetje;
+}
+
+Mat getTransposeMatrix(Mat src) {
+    Mat dst(src.cols, src.rows, CV_64FC1);
+
+    for(double i = 0; i < src.cols; i++) {
+        for(double j = 0; j < src.rows; j++) {
+            dst.at<double>(i,j) = src.at<double>(j,i);
+        }
+    }
+
+    return dst;
+}
+
+double findDeterminant(Mat src) {
+    return 0;
+}
+
+Mat getInverseMatrix(Mat src) {
+
 }
 
 int main(int argc, char* argv[]) {
@@ -93,6 +113,41 @@ int main(int argc, char* argv[]) {
 		std::cout << "Oh no!" << std::endl;
 		return -1;
     }
+
+    double dA[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ,12}; 
+
+    Mat M = Mat(3,4, CV_64FC1, dA);
+    Mat MTCV;
+    Mat MTLJ = getTransposeMatrix(M);
+    transpose(M, MTCV);
+
+    Mat MSQUARE = M * MTCV;
+
+    //double MDLJ = findDeterminant(MSQUARE);
+    double MDCV = determinant(MSQUARE);
+
+
+    //Mat MILJ = getInverseMatrix(MSQUARE);
+    Mat MICV = MSQUARE.inv();
+    
+    
+    
+
+    std::cout << "M = "<< std::endl << " "  << M << std::endl << std::endl;
+
+    std::cout << "M transposed custom= "<< std::endl << " "  << MTLJ << std::endl << std::endl;
+
+    std::cout << "M transposed opencv= "<< std::endl << " "  << MTCV << std::endl << std::endl;
+
+    std::cout << "M * M transposed= "<< std::endl << " "  << MSQUARE << std::endl << std::endl;
+
+    //std::cout << "M * M transposed determinant custom = "<< std::endl << " "  << MDLJ << std::endl << std::endl;
+
+    std::cout << "M * M transposed determinant opencv = "<< std::endl << " "  << MDCV << std::endl << std::endl;
+
+    //std::cout << "M * M transposed inverse custom = "<< std::endl << " "  << MILJ << std::endl << std::endl;
+
+    std::cout << "M * M transposed inverse opencv = "<< std::endl << " "  << MICV << std::endl << std::endl;
     
     /*
      * Find corners
