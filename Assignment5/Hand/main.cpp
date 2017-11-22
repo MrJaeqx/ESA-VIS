@@ -167,7 +167,8 @@ int main(int argc, char* argv[]) {
 	// Show your results
 	namedWindow("Convex Hull", CV_WINDOW_AUTOSIZE);
 	imshow("Convex Hull", drawing);
-    
+    imwrite("./hands_res.png", drawing);
+
 	waitKey(0);
 	return 0;
 }
