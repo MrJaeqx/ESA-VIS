@@ -39,4 +39,5 @@ CMakeFiles/
 
 # Omdat ik een geweldige editor gebruik
 .vscode/
-
+*.sublime-project
+*.sublime-workspace
