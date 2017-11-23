@@ -89,12 +89,98 @@ Mat getTransposeMatrix(Mat src) {
     return dst;
 }
 
+double determinant(Mat src, int n) {
+    Mat temp(n, n, CV_64FC1);
+    double det = 0;
+    double refCol, tempIndexRow, tempIndexCol;
+    
+    if(n == 1) {
+        return src.at<double>(0,0);
+    } else if (n == 2) {
+        return (src.at<double>(0,0) * src.at<double>(1,1) - src.at<double>(0,1) * src.at<double>(1,0));
+    } else {  
+        for(refCol = 0; refCol < n; refCol++) {  
+            tempIndexRow = 0;  
+
+            for(double srcIndexRow = 1; srcIndexRow < n; srcIndexRow++) {  
+                tempIndexCol = 0;
+
+                for(double srcIndexCol = 0; srcIndexCol < n; srcIndexCol++) {
+                    if (srcIndexCol == refCol) {
+                        continue;
+                    }
+
+                    temp.at<double>(tempIndexRow,tempIndexCol) = src.at<double>(srcIndexRow,srcIndexCol);
+                    tempIndexCol++;
+                }
+                tempIndexRow++;
+            }
+        det = det + (pow(-1,refCol) * src.at<double>(0,refCol) * determinant(temp, n - 1));
+        }
+        return det;
+    }
+}
+
 double findDeterminant(Mat src) {
-    return 0;
+    if(src.rows == src.cols) {
+        determinant(src, src.rows);
+    } else {
+        return -1;
+    }
+}
+
+Mat getMinor(Mat src, int row, int col) {
+    Mat min(src.rows - 1, src.cols - 1, CV_64FC1);
+    int tempIndexRow = 0;
+    int tempIndexCol = 0;
+
+    for (int i = 0; i < src.rows; i++) {
+        tempIndexRow = i;
+        if (i > row) {
+            tempIndexRow--;
+        }
+        for (int j = 0; j < src.cols; j++) {
+            tempIndexCol = j;
+            if (j > col) {
+                tempIndexCol--;
+            }
+            if (i != row && j != col) {
+                min.at<double>(tempIndexRow,tempIndexCol) = src.at<double>(i,j);
+            }
+        }
+    }
+    return min;
+}
+
+Mat getCofactor(Mat src) {
+    Mat cofactor(src.rows, src.cols, CV_64FC1);
+    for(int i = 0; i < src.rows; i++) {
+        for (int j = 0; j < src.cols; ++j)
+        {
+            Mat min = getMinor(src, i, j);
+            cofactor.at<double>(i,j) = (min.at<double>(0,0) * min.at<double>(1,1) - min.at<double>(0,1) * min.at<double>(1,0)) * (double) pow(-1, i + j);
+        }
+    }
+   return cofactor; 
 }
 
 Mat getInverseMatrix(Mat src) {
+    if (src.rows != src.cols) {
+        CV_Error( CV_StsBadArg, "Matrix needs to be square");
+    }
 
+    Mat inv(src.rows, src.cols, CV_64FC1);
+    Mat cofactor = getCofactor(getTransposeMatrix(src));
+
+    double det = findDeterminant(src);
+
+    for (int i = 0; i < src.rows; i++) {
+        for (int j = 0; j < src.cols; j++) {
+            inv.at<double>(i,j) = cofactor.at<double>(i,j) / det;
+        }
+    }
+
+    return inv;
 }
 
 int main(int argc, char* argv[]) {
@@ -114,24 +200,28 @@ int main(int argc, char* argv[]) {
 		return -1;
     }
 
-    double dA[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ,12}; 
+    double dA[] = {1, 2, 3, 4, 0, 1, 4, 7, 5, 6, 0, 8}; 
 
-    Mat M = Mat(3,4, CV_64FC1, dA);
+    Mat M = Mat(3, 4, CV_64FC1, dA);
     Mat MTCV;
     Mat MTLJ = getTransposeMatrix(M);
     transpose(M, MTCV);
 
-    Mat MSQUARE = M * MTCV;
+    Mat MSQUARE = M;
+    //M.mul(MTLJ);
 
-    //double MDLJ = findDeterminant(MSQUARE);
+    gemm(M, MTLJ, 1, MTLJ, 0, MSQUARE, 0);
+
+    double MDLJ = findDeterminant(MSQUARE);
     double MDCV = determinant(MSQUARE);
 
 
-    //Mat MILJ = getInverseMatrix(MSQUARE);
-    Mat MICV = MSQUARE.inv();
-    
-    
-    
+    Mat MILJ = getInverseMatrix(MSQUARE);
+    Mat MICV;
+    invert(MSQUARE, MICV, DECOMP_SVD);
+
+    Mat MPLJ = MTLJ * MILJ;
+    Mat MPCV = MTCV * MICV;
 
     std::cout << "M = "<< std::endl << " "  << M << std::endl << std::endl;
 
@@ -141,19 +231,23 @@ int main(int argc, char* argv[]) {
 
     std::cout << "M * M transposed= "<< std::endl << " "  << MSQUARE << std::endl << std::endl;
 
-    //std::cout << "M * M transposed determinant custom = "<< std::endl << " "  << MDLJ << std::endl << std::endl;
+    std::cout << "M * M transposed determinant custom = "<< std::endl << " "  << MDLJ << std::endl << std::endl;
 
     std::cout << "M * M transposed determinant opencv = "<< std::endl << " "  << MDCV << std::endl << std::endl;
 
-    //std::cout << "M * M transposed inverse custom = "<< std::endl << " "  << MILJ << std::endl << std::endl;
+    std::cout << "M * M transposed inverse custom"<< std::endl << " "  << MILJ << std::endl << std::endl;
 
     std::cout << "M * M transposed inverse opencv = "<< std::endl << " "  << MICV << std::endl << std::endl;
     
+    std::cout << "(M * Mt) * Mt custom = "<< std::endl << " "  << MPLJ << std::endl << std::endl;
+
+    std::cout << "(M * Mt) * Mt opencv = "<< std::endl << " "  << MPCV << std::endl << std::endl;
+
     /*
      * Find corners
      */
-    std::vector<Point> imageAPoints = getCorners("A", src1);
-    std::vector<Point> imageBPoints = getCorners("B", src2);
+    //std::vector<Point> imageAPoints = getCorners("A", src1);
+    //std::vector<Point> imageBPoints = getCorners("B", src2);
 
     //auto transform_Matrix = getMatrix(imageAPoints, imageBPoints);
 
