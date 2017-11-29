@@ -186,43 +186,18 @@ Mat getInverseMatrix(Mat src) {
     return inv;
 }
 
-float getRotationCos(Mat src) {
-    return acos(src.at<float>(0,0));
-}
-
-float getRotationSin(Mat src) {
-    return asin(src.at<float>(1,0));
-}
-
-float getTransformationX(Mat src) {
-    return src.at<float>(2,0);
-}
-
-float getTransformationY(Mat src) {
-    return src.at<float>(3,0);
-}
-
 Mat getTransformationMatrix(Mat a, Mat b) {
     Mat aT = getTransposeMatrix(a);
-
-    std::cout << "a = "<< std::endl << " "  << a << std::endl << std::endl;
-
-    std::cout << "aT = "<< std::endl << " "  << aT << std::endl << std::endl;
-
     Mat aSq = aT * a;
 
     Mat aInv;
     invert(aSq, aInv, DECOMP_SVD);
+
+    // Not using own implementation because matrix is > 3x3
     //Mat aInv = getInverseMatrix(aSq);
 
     Mat aPseudo = aInv * aT;
-
-    std::cout << "aPseudo = "<< std::endl << " "  << aPseudo << std::endl << std::endl;
-
     Mat all = aPseudo * b;
-   
-    std::cout << "all = "<< std::endl << " "  << all << std::endl << std::endl;
-
     return all;
 }
 
@@ -268,17 +243,17 @@ int main(int argc, char* argv[]) {
 
     std::cout << "M = "<< std::endl << " "  << M << std::endl << std::endl;
 
-    std::cout << "M transposed custom= "<< std::endl << " "  << MTLJ << std::endl << std::endl;
+    std::cout << "M transposed custom = "<< std::endl << " "  << MTLJ << std::endl << std::endl;
 
-    std::cout << "M transposed opencv= "<< std::endl << " "  << MTCV << std::endl << std::endl;
+    std::cout << "M transposed opencv = "<< std::endl << " "  << MTCV << std::endl << std::endl;
 
-    std::cout << "M * M transposed= "<< std::endl << " "  << MSQUARE << std::endl << std::endl;
+    std::cout << "M * M transposed = "<< std::endl << " "  << MSQUARE << std::endl << std::endl;
 
     std::cout << "M * M transposed determinant custom = "<< std::endl << " "  << MDLJ << std::endl << std::endl;
 
     std::cout << "M * M transposed determinant opencv = "<< std::endl << " "  << MDCV << std::endl << std::endl;
 
-    std::cout << "M * M transposed inverse custom"<< std::endl << " "  << MILJ << std::endl << std::endl;
+    std::cout << "M * M transposed inverse custom = "<< std::endl << " "  << MILJ << std::endl << std::endl;
 
     std::cout << "M * M transposed inverse opencv = "<< std::endl << " "  << MICV << std::endl << std::endl;
     
@@ -319,6 +294,7 @@ int main(int argc, char* argv[]) {
     Mat pointsB = Mat(8, 1, CV_32FC1, dB);
     
     Mat transformMatrix = getTransformationMatrix(pointsA, pointsB);
+
     float dTrans[] {
         transformMatrix.at<float>(0,0), -transformMatrix.at<float>(1,0), transformMatrix.at<float>(2,0),
         transformMatrix.at<float>(1,0), transformMatrix.at<float>(0,0), transformMatrix.at<float>(3,0),
@@ -329,17 +305,23 @@ int main(int argc, char* argv[]) {
 
     Mat cvTransformMatrix = getPerspectiveTransform(iAP2, iBP2);
 
-    std::cout << "transformMatrix = "<< std::endl << " "  << transformMatrix << std::endl << std::endl;
-    std::cout << "cvTransformMatrix = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
+    std::cout << "transform matrix custom = "<< std::endl << " "  << trans << std::endl << std::endl;
+    std::cout << "transform matrix custom = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
 
-    warpPerspective(src1, src1 , trans, src1.size() );
-    namedWindow("src1T", WINDOW_NORMAL);
-    resizeWindow("src1T", 800, 480);
-	imshow("src1T", src1);
+    Mat transformed;
+    warpPerspective(src1, transformed , trans, src1.size());
 
-    namedWindow("src2", WINDOW_NORMAL);
-    resizeWindow("src2", 800, 480);
-	imshow("src2", src2);
+    namedWindow("Custom image transform", WINDOW_NORMAL);
+    resizeWindow("Custom image transform", 800, 480);
+    imshow("Custom image transform", transformed);
+
+    namedWindow("Original image", WINDOW_NORMAL);
+    resizeWindow("Original image", 800, 480);
+    imshow("Original image", src1);
+
+    namedWindow("Original transformed image", WINDOW_NORMAL);
+    resizeWindow("Original transformed image", 800, 480);
+	imshow("Original transformed image", src2);
 
 	waitKey(0);
 	return 0;
