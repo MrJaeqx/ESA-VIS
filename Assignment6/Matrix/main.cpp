@@ -152,6 +152,8 @@ Mat getMinor(Mat src, int row, int col) {
     return min;
 }
 
+
+// TODO MATRIX BIGGER THAN 3x3 (RECURSION)
 Mat getCofactor(Mat src) {
     Mat cofactor(src.rows, src.cols, CV_32FC1);
     for(int i = 0; i < src.rows; i++) {
@@ -164,6 +166,7 @@ Mat getCofactor(Mat src) {
    return cofactor; 
 }
 
+// TODO MATRIX BIGGER THAN 3x3
 Mat getInverseMatrix(Mat src) {
     if (src.rows != src.cols) {
         CV_Error( CV_StsBadArg, "Matrix needs to be square");
