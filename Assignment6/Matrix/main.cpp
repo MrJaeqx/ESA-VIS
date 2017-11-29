@@ -12,12 +12,12 @@ float rad2deg(float rad) {
     return (rad*(180/M_PI));
 }
 
-std::vector<Point> getCorners(std::string name, Mat src) {
+std::vector<Point2f> getCorners(std::string name, Mat src) {
     Mat drawing = src.clone();
 
     Mat threshold_output;
     std::vector<Vec4i> hierarchy;
-    std::vector<Point> corners;
+    std::vector<Point2f> corners;
 	cvtColor(src, src, COLOR_BGR2HSV);
     GaussianBlur(src, src, Size(5, 5), 0, 0);
 
@@ -47,29 +47,33 @@ std::vector<Point> getCorners(std::string name, Mat src) {
 
     color = Scalar( 255, 0, 0 );
 
-    std::vector<Point> dingetje;
+    std::vector<Point> corners_temp;
 
     for( uint i = 0; i < hullp.size(); i++ ) {  
         drawContours( drawing, hullp, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
 
         std::vector<Point> approx;
         approxPolyDP(Mat(hullp[i]), approx, arcLength(Mat(hullp[i]), true)*0.02, true);
-        if (approx.size() == 4) dingetje = approx;
+        if (approx.size() == 4) corners_temp = approx;
     }
 
     color = Scalar( 0, 255, 0 );
-    std::vector< std::vector<Point> > dingetje2;
-    dingetje2.push_back(dingetje);
+    std::vector< std::vector<Point> > corners_temp_draw;
+    corners_temp_draw.push_back(corners_temp);
 
-    for (uint i = 0; i < dingetje2.size(); i++) {
-        drawContours( drawing, dingetje2, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
+    for (uint i = 0; i < corners_temp_draw.size(); i++) {
+       drawContours( drawing, corners_temp_draw, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
     namedWindow(name.c_str(), WINDOW_NORMAL);
     resizeWindow(name.c_str(), 800, 480);
 	imshow(name.c_str(), drawing);
+
+    for (auto point : corners_temp) {
+        corners.push_back(Point2f(point.x, point.y));
+    }
     
-    return dingetje;
+    return corners;
 }
 
 Mat getTransposeMatrix(Mat src) {
@@ -286,20 +290,8 @@ int main(int argc, char* argv[]) {
     /*
      * Find corners
      */
-    std::vector<Point> imageAPoints = getCorners("A", src1);
-    std::vector<Point> imageBPoints = getCorners("B", src2);
-
-    std::vector<Point2f> iAP2;
-    std::vector<Point2f> iBP2;
-    
-    for (auto p : imageAPoints) {
-        iAP2.push_back(Point2d((float)p.x, (float)p.y));
-    }
-    for (auto p : imageBPoints) {
-        iBP2.push_back(Point2d((float)p.x, (float)p.y));
-    }
-    
-    
+    std::vector<Point2f> iAP2 = getCorners("A", src1);
+    std::vector<Point2f> iBP2 = getCorners("B", src2);
 
     float dA[] = {
         iAP2[0].x, -iAP2[0].y, 1, 0,
