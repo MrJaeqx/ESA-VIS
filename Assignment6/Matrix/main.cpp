@@ -32,19 +32,19 @@ std::vector<Point> getCorners(std::string name, Mat src) {
     
     std::vector< std::vector<Point> > contours2;
 
-    for( int i = 0; i < contours.size(); i++ ) {  
+    for( uint i = 0; i < contours.size(); i++ ) {  
         if (contourArea(contours[i]) > 20000) contours2.push_back(contours[i]);
     }
     
     Scalar color = Scalar( 0, 0, 255 );
 
-    for( int i = 0; i < contours2.size(); i++ ) {  
+    for( uint i = 0; i < contours2.size(); i++ ) {  
         std::cout << i << " " << contours2[i].size() << "\n";
         drawContours( drawing, contours2, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
     std::vector< std::vector<Point> > hullp(contours2.size());
-    for( int i = 0; i < contours2.size(); i++ ) {  
+    for( uint i = 0; i < contours2.size(); i++ ) {  
         convexHull( Mat(contours2[i]), hullp[i], false );
     }
 
@@ -52,7 +52,7 @@ std::vector<Point> getCorners(std::string name, Mat src) {
 
     std::vector<Point> dingetje;
 
-    for( int i = 0; i < hullp.size(); i++ ) {  
+    for( uint i = 0; i < hullp.size(); i++ ) {  
         drawContours( drawing, hullp, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
 
         std::vector<Point> approx;
@@ -66,7 +66,7 @@ std::vector<Point> getCorners(std::string name, Mat src) {
     std::vector< std::vector<Point> > dingetje2;
     dingetje2.push_back(dingetje);
 
-    for (int i = 0; i < dingetje2.size(); i++) {
+    for (uint i = 0; i < dingetje2.size(); i++) {
         drawContours( drawing, dingetje2, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
@@ -183,6 +183,15 @@ Mat getInverseMatrix(Mat src) {
     return inv;
 }
 
+Mat getTransformationMatrix(Mat a, Mat b) {
+    Mat aT = getTransposeMatrix(a);
+    std::cout << aT << std::endl;
+
+    Mat aPseudo = a * aT;
+//    Mat aInv = getInverseMatrix(a * aT).clone();
+//    return aInv * (aT * b);
+}
+
 int main(int argc, char* argv[]) {
 	Mat src1, src2;
     
@@ -209,9 +218,7 @@ int main(int argc, char* argv[]) {
     transpose(M, MTCV);
 
     Mat MSQUARE = M.clone();
-    //M.mul(MTLJ);
-
-    //gemm(M, MTLJ, 1, MTLJ, 0, MSQUARE, 0);
+    
     MSQUARE = (M*MTLJ);
 
     double MDLJ = findDeterminant(MSQUARE);
@@ -248,10 +255,23 @@ int main(int argc, char* argv[]) {
     /*
      * Find corners
      */
-    //std::vector<Point> imageAPoints = getCorners("A", src1);
-    //std::vector<Point> imageBPoints = getCorners("B", src2);
+    std::vector<Point> imageAPoints = getCorners("A", src1);
+    std::vector<Point> imageBPoints = getCorners("B", src2);
 
-    //auto transform_Matrix = getMatrix(imageAPoints, imageBPoints);
+    std::vector<Point2d> iAP2;
+    std::vector<Point2d> iBP2;
+    
+    for (auto p : imageAPoints) {
+        iAP2.push_back(Point2d((double)p.x, (double)p.y));
+    }
+    for (auto p : imageBPoints) {
+        iBP2.push_back(Point2d((double)p.x, (double)p.y));
+    }
+    
+    Mat pointsA = Mat(2, 2, CV_64FC1, iAP2);
+    Mat pointsB = Mat(2, 2, CV_64FC1, iBP2);
+    
+    auto transformMatrix = getTransformationMatrix(pointsA, pointsB);
 
 	waitKey(0);
 	return 0;
