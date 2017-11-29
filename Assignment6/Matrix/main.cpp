@@ -80,8 +80,8 @@ std::vector<Point> getCorners(std::string name, Mat src) {
 Mat getTransposeMatrix(Mat src) {
     Mat dst(src.cols, src.rows, CV_64FC1);
 
-    for(double i = 0; i < src.cols; i++) {
-        for(double j = 0; j < src.rows; j++) {
+    for(int i = 0; i < src.cols; i++) {
+        for(int j = 0; j < src.rows; j++) {
             dst.at<double>(i,j) = src.at<double>(j,i);
         }
     }
@@ -91,8 +91,8 @@ Mat getTransposeMatrix(Mat src) {
 
 double determinant(Mat src, int n) {
     Mat temp(n, n, CV_64FC1);
-    double det = 0;
-    double refCol, tempIndexRow, tempIndexCol;
+    double det = 0.0;
+    int refCol, tempIndexRow, tempIndexCol;
     
     if(n == 1) {
         return src.at<double>(0,0);
@@ -102,10 +102,10 @@ double determinant(Mat src, int n) {
         for(refCol = 0; refCol < n; refCol++) {  
             tempIndexRow = 0;  
 
-            for(double srcIndexRow = 1; srcIndexRow < n; srcIndexRow++) {  
+            for(int srcIndexRow = 1; srcIndexRow < n; srcIndexRow++) {  
                 tempIndexCol = 0;
 
-                for(double srcIndexCol = 0; srcIndexCol < n; srcIndexCol++) {
+                for(int srcIndexCol = 0; srcIndexCol < n; srcIndexCol++) {
                     if (srcIndexCol == refCol) {
                         continue;
                     }
@@ -123,7 +123,7 @@ double determinant(Mat src, int n) {
 
 double findDeterminant(Mat src) {
     if(src.rows == src.cols) {
-        determinant(src, src.rows);
+        return determinant(src.clone(), src.rows);
     } else {
         return -1;
     }
@@ -200,17 +200,19 @@ int main(int argc, char* argv[]) {
 		return -1;
     }
 
-    double dA[] = {1, 2, 3, 4, 0, 1, 4, 7, 5, 6, 0, 8}; 
+    double dA[] = {1, 2, 3, 4, 0, 1, 4, 7, 5, 6, 0, 8};
 
     Mat M = Mat(3, 4, CV_64FC1, dA);
+
     Mat MTCV;
-    Mat MTLJ = getTransposeMatrix(M);
+    Mat MTLJ = getTransposeMatrix(M).clone();
     transpose(M, MTCV);
 
-    Mat MSQUARE = M;
+    Mat MSQUARE = M.clone();
     //M.mul(MTLJ);
 
-    gemm(M, MTLJ, 1, MTLJ, 0, MSQUARE, 0);
+    //gemm(M, MTLJ, 1, MTLJ, 0, MSQUARE, 0);
+    MSQUARE = (M*MTLJ);
 
     double MDLJ = findDeterminant(MSQUARE);
     double MDCV = determinant(MSQUARE);
