@@ -14,16 +14,17 @@ float rad2deg(float rad) {
 
 std::vector<Point2f> getCorners(std::string name, Mat src) {
     Mat drawing = src.clone();
+    Mat _src = src.clone();
 
     Mat threshold_output;
     std::vector<Vec4i> hierarchy;
     std::vector<Point2f> corners;
-	cvtColor(src, src, COLOR_BGR2HSV);
-    GaussianBlur(src, src, Size(5, 5), 0, 0);
+	cvtColor(_src, _src, COLOR_BGR2HSV);
+    GaussianBlur(_src, _src, Size(5, 5), 0, 0);
 
-    inRange(src, Scalar(22,0,0), Scalar(255,255,255), src);
+    inRange(_src, Scalar(22,0,0), Scalar(255,255,255), _src);
 
-    threshold( src, threshold_output, 100, 255, THRESH_BINARY );
+    threshold( _src, threshold_output, 100, 255, THRESH_BINARY );
 
     std::vector< std::vector<Point> > contours;
     findContours( threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
@@ -65,9 +66,9 @@ std::vector<Point2f> getCorners(std::string name, Mat src) {
        drawContours( drawing, corners_temp_draw, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
-    namedWindow(name.c_str(), WINDOW_NORMAL);
-    resizeWindow(name.c_str(), 800, 480);
-	imshow(name.c_str(), drawing);
+    //namedWindow(name.c_str(), WINDOW_NORMAL);
+    //resizeWindow(name.c_str(), 800, 480);
+	//imshow(name.c_str(), drawing);
 
     for (auto point : corners_temp) {
         corners.push_back(Point2f(point.x, point.y));
@@ -205,26 +206,21 @@ Mat getTransformationMatrix(Mat a, Mat b) {
 
     std::cout << "aT = "<< std::endl << " "  << aT << std::endl << std::endl;
 
+    Mat aSq = aT * a;
 
-    Mat aPseudo = a * aT;
+    Mat aInv;
+    invert(aSq, aInv, DECOMP_SVD);
+    //Mat aInv = getInverseMatrix(aSq);
+
+    Mat aPseudo = aInv * aT;
 
     std::cout << "aPseudo = "<< std::endl << " "  << aPseudo << std::endl << std::endl;
 
-    Mat aInv = getInverseMatrix(aPseudo);
+    Mat all = aPseudo * b;
+   
+    std::cout << "all = "<< std::endl << " "  << all << std::endl << std::endl;
 
-    std::cout << "aInv = "<< std::endl << " "  << aInv << std::endl << std::endl;
-
-    Mat aDing = aInv * aT;
-
-    std::cout << "aDing = "<< std::endl << " "  << aDing << std::endl << std::endl;
-
-    //Mat aDingMetB = aDing * b.clone();
-
-    //std::cout << "aDingMetB = "<< std::endl << " "  << aDingMetB << std::endl << std::endl;
-
-//    Mat aInv = getInverseMatrix(a * aT).clone();
-//    return aInv * (aT * b);
-    return aPseudo;
+    return all;
 }
 
 int main(int argc, char* argv[]) {
@@ -295,28 +291,43 @@ int main(int argc, char* argv[]) {
 
     float dA[] = {
         iAP2[0].x, -iAP2[0].y, 1, 0,
+        iAP2[0].y, iAP2[0].x, 0, 1,
+        iAP2[1].x, -iAP2[1].y, 1, 0,
         iAP2[1].y, iAP2[1].x, 0, 1,
         iAP2[2].x, -iAP2[2].y, 1, 0,
+        iAP2[2].y, iAP2[2].x, 0, 1,
+        iAP2[3].x, -iAP2[3].y, 1, 0,
         iAP2[3].y, iAP2[3].x, 0, 1
     };
 
-    Mat pointsA = Mat(4, 4, CV_32FC1, dA);
+    Mat pointsA = Mat(8, 4, CV_32FC1, dA);
 
     float dB[] {
-        iBP2[0].x, iBP2[0].y,
-        iBP2[1].x, iBP2[1].y,
-        iBP2[2].x, iBP2[2].y,
-        iBP2[3].x, iBP2[3].y
+        iBP2[0].x, 
+        iBP2[0].y,
+        iBP2[1].x, 
+        iBP2[1].y,
+        iBP2[2].x, 
+        iBP2[2].y,
+        iBP2[3].x, 
+        iBP2[3].y
     };
 
     Mat pointsB = Mat(8, 1, CV_32FC1, dB);
     
-    auto transformMatrix = getTransformationMatrix(pointsA, pointsB);
+    Mat transformMatrix = getTransformationMatrix(pointsA, pointsB);
+
+
 
     Mat cvTransformMatrix = getPerspectiveTransform(iAP2, iBP2);
 
     std::cout << "transformMatrix = "<< std::endl << " "  << transformMatrix << std::endl << std::endl;
     std::cout << "cvTransformMatrix = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
+
+    warpPerspective(src1, src1 , cvTransformMatrix, src1.size() );
+    namedWindow("src1", WINDOW_NORMAL);
+    resizeWindow("src1", 800, 480);
+	imshow("src1", src1);
 
 	waitKey(0);
 	return 0;
