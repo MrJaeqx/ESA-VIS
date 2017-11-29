@@ -308,20 +308,17 @@ int main(int argc, char* argv[]) {
     std::cout << "transform matrix custom = "<< std::endl << " "  << trans << std::endl << std::endl;
     std::cout << "transform matrix custom = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
 
-    Mat transformed;
-    warpPerspective(src1, transformed , trans, src1.size());
-
+    Mat transformedCustom;
+    warpPerspective(src1, transformedCustom , trans, src1.size());
     namedWindow("Custom image transform", WINDOW_NORMAL);
     resizeWindow("Custom image transform", 800, 480);
-    imshow("Custom image transform", transformed);
+    imshow("Custom image transform", transformedCustom);
 
-    namedWindow("Original image", WINDOW_NORMAL);
-    resizeWindow("Original image", 800, 480);
-    imshow("Original image", src1);
-
-    namedWindow("Original transformed image", WINDOW_NORMAL);
-    resizeWindow("Original transformed image", 800, 480);
-	imshow("Original transformed image", src2);
+    Mat transformedOpenCV;
+    warpPerspective(src1, transformedOpenCV , cvTransformMatrix, src1.size());
+    namedWindow("OpenCV image transform", WINDOW_NORMAL);
+    resizeWindow("OpenCV image transform", 800, 480);
+    imshow("OpenCV image transform", transformedOpenCV);
 
 	waitKey(0);
 	return 0;
