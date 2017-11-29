@@ -319,18 +319,27 @@ int main(int argc, char* argv[]) {
     Mat pointsB = Mat(8, 1, CV_32FC1, dB);
     
     Mat transformMatrix = getTransformationMatrix(pointsA, pointsB);
+    float dTrans[] {
+        transformMatrix.at<float>(0,0), -transformMatrix.at<float>(1,0), transformMatrix.at<float>(2,0),
+        transformMatrix.at<float>(1,0), transformMatrix.at<float>(0,0), transformMatrix.at<float>(3,0),
+        0, 0, 1
+    };
 
-
+    Mat trans = Mat(3, 3, CV_32FC1, dTrans);
 
     Mat cvTransformMatrix = getPerspectiveTransform(iAP2, iBP2);
 
     std::cout << "transformMatrix = "<< std::endl << " "  << transformMatrix << std::endl << std::endl;
     std::cout << "cvTransformMatrix = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
 
-    warpPerspective(src1, src1 , cvTransformMatrix, src1.size() );
-    namedWindow("src1", WINDOW_NORMAL);
-    resizeWindow("src1", 800, 480);
-	imshow("src1", src1);
+    warpPerspective(src1, src1 , trans, src1.size() );
+    namedWindow("src1T", WINDOW_NORMAL);
+    resizeWindow("src1T", 800, 480);
+	imshow("src1T", src1);
+
+    namedWindow("src2", WINDOW_NORMAL);
+    resizeWindow("src2", 800, 480);
+	imshow("src2", src2);
 
 	waitKey(0);
 	return 0;
