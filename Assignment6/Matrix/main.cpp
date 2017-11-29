@@ -183,6 +183,22 @@ Mat getInverseMatrix(Mat src) {
     return inv;
 }
 
+double getRotationCos(Mat src) {
+    return acos(src.at<double>(0,0));
+}
+
+double getRotationSin(Mat src) {
+    return asin(src.at<double>(1,0));
+}
+
+double getTransformationX(Mat src) {
+    return src.at<double>(2,0);
+}
+
+double getTransformationY(Mat src) {
+    return src.at<double>(3,0);
+}
+
 int main(int argc, char* argv[]) {
 	Mat src1, src2;
     
@@ -252,6 +268,11 @@ int main(int argc, char* argv[]) {
     //std::vector<Point> imageBPoints = getCorners("B", src2);
 
     //auto transform_Matrix = getMatrix(imageAPoints, imageBPoints);
+
+
+    Mat cvTransformMatrix = getPerspectiveTransform(src1, src2);
+
+    std::cout << "cvTransformMatrix = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
 
 	waitKey(0);
 	return 0;
