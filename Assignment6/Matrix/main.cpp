@@ -8,14 +8,12 @@
 
 using namespace cv;
 
-double rad2deg(double rad) {
+float rad2deg(float rad) {
     return (rad*(180/M_PI));
 }
 
 std::vector<Point> getCorners(std::string name, Mat src) {
     Mat drawing = src.clone();
-
-    std::cout << "Bla\n";
 
     Mat threshold_output;
     std::vector<Vec4i> hierarchy;
@@ -32,19 +30,18 @@ std::vector<Point> getCorners(std::string name, Mat src) {
     
     std::vector< std::vector<Point> > contours2;
 
-    for( int i = 0; i < contours.size(); i++ ) {  
+    for( uint i = 0; i < contours.size(); i++ ) {  
         if (contourArea(contours[i]) > 20000) contours2.push_back(contours[i]);
     }
     
     Scalar color = Scalar( 0, 0, 255 );
 
-    for( int i = 0; i < contours2.size(); i++ ) {  
-        std::cout << i << " " << contours2[i].size() << "\n";
+    for( uint i = 0; i < contours2.size(); i++ ) {  
         drawContours( drawing, contours2, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
     std::vector< std::vector<Point> > hullp(contours2.size());
-    for( int i = 0; i < contours2.size(); i++ ) {  
+    for( uint i = 0; i < contours2.size(); i++ ) {  
         convexHull( Mat(contours2[i]), hullp[i], false );
     }
 
@@ -52,7 +49,7 @@ std::vector<Point> getCorners(std::string name, Mat src) {
 
     std::vector<Point> dingetje;
 
-    for( int i = 0; i < hullp.size(); i++ ) {  
+    for( uint i = 0; i < hullp.size(); i++ ) {  
         drawContours( drawing, hullp, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
 
         std::vector<Point> approx;
@@ -60,13 +57,11 @@ std::vector<Point> getCorners(std::string name, Mat src) {
         if (approx.size() == 4) dingetje = approx;
     }
 
-    std::cout << "Dinges sz: " << dingetje.size() << "\n";
-
     color = Scalar( 0, 255, 0 );
     std::vector< std::vector<Point> > dingetje2;
     dingetje2.push_back(dingetje);
 
-    for (int i = 0; i < dingetje2.size(); i++) {
+    for (uint i = 0; i < dingetje2.size(); i++) {
         drawContours( drawing, dingetje2, i, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
     }
 
@@ -78,26 +73,26 @@ std::vector<Point> getCorners(std::string name, Mat src) {
 }
 
 Mat getTransposeMatrix(Mat src) {
-    Mat dst(src.cols, src.rows, CV_64FC1);
+    Mat dst(src.cols, src.rows, CV_32FC1);
 
     for(int i = 0; i < src.cols; i++) {
         for(int j = 0; j < src.rows; j++) {
-            dst.at<double>(i,j) = src.at<double>(j,i);
+            dst.at<float>(i,j) = src.at<float>(j,i);
         }
     }
 
     return dst;
 }
 
-double determinant(Mat src, int n) {
-    Mat temp(n, n, CV_64FC1);
-    double det = 0.0;
+float determinant(Mat src, int n) {
+    Mat temp(n, n, CV_32FC1);
+    float det = 0.0;
     int refCol, tempIndexRow, tempIndexCol;
     
     if(n == 1) {
-        return src.at<double>(0,0);
+        return src.at<float>(0,0);
     } else if (n == 2) {
-        return (src.at<double>(0,0) * src.at<double>(1,1) - src.at<double>(0,1) * src.at<double>(1,0));
+        return (src.at<float>(0,0) * src.at<float>(1,1) - src.at<float>(0,1) * src.at<float>(1,0));
     } else {  
         for(refCol = 0; refCol < n; refCol++) {  
             tempIndexRow = 0;  
@@ -110,18 +105,18 @@ double determinant(Mat src, int n) {
                         continue;
                     }
 
-                    temp.at<double>(tempIndexRow,tempIndexCol) = src.at<double>(srcIndexRow,srcIndexCol);
+                    temp.at<float>(tempIndexRow,tempIndexCol) = src.at<float>(srcIndexRow,srcIndexCol);
                     tempIndexCol++;
                 }
                 tempIndexRow++;
             }
-        det = det + (pow(-1,refCol) * src.at<double>(0,refCol) * determinant(temp, n - 1));
+        det = det + (pow(-1,refCol) * src.at<float>(0,refCol) * determinant(temp, n - 1));
         }
         return det;
     }
 }
 
-double findDeterminant(Mat src) {
+float findDeterminant(Mat src) {
     if(src.rows == src.cols) {
         return determinant(src.clone(), src.rows);
     } else {
@@ -130,7 +125,7 @@ double findDeterminant(Mat src) {
 }
 
 Mat getMinor(Mat src, int row, int col) {
-    Mat min(src.rows - 1, src.cols - 1, CV_64FC1);
+    Mat min(src.rows - 1, src.cols - 1, CV_32FC1);
     int tempIndexRow = 0;
     int tempIndexCol = 0;
 
@@ -145,7 +140,7 @@ Mat getMinor(Mat src, int row, int col) {
                 tempIndexCol--;
             }
             if (i != row && j != col) {
-                min.at<double>(tempIndexRow,tempIndexCol) = src.at<double>(i,j);
+                min.at<float>(tempIndexRow,tempIndexCol) = src.at<float>(i,j);
             }
         }
     }
@@ -153,12 +148,12 @@ Mat getMinor(Mat src, int row, int col) {
 }
 
 Mat getCofactor(Mat src) {
-    Mat cofactor(src.rows, src.cols, CV_64FC1);
+    Mat cofactor(src.rows, src.cols, CV_32FC1);
     for(int i = 0; i < src.rows; i++) {
         for (int j = 0; j < src.cols; ++j)
         {
             Mat min = getMinor(src, i, j);
-            cofactor.at<double>(i,j) = (min.at<double>(0,0) * min.at<double>(1,1) - min.at<double>(0,1) * min.at<double>(1,0)) * (double) pow(-1, i + j);
+            cofactor.at<float>(i,j) = (min.at<float>(0,0) * min.at<float>(1,1) - min.at<float>(0,1) * min.at<float>(1,0)) * (float) pow(-1, i + j);
         }
     }
    return cofactor; 
@@ -169,34 +164,63 @@ Mat getInverseMatrix(Mat src) {
         CV_Error( CV_StsBadArg, "Matrix needs to be square");
     }
 
-    Mat inv(src.rows, src.cols, CV_64FC1);
+    Mat inv(src.rows, src.cols, CV_32FC1);
     Mat cofactor = getCofactor(getTransposeMatrix(src));
 
-    double det = findDeterminant(src);
+    float det = findDeterminant(src);
 
     for (int i = 0; i < src.rows; i++) {
         for (int j = 0; j < src.cols; j++) {
-            inv.at<double>(i,j) = cofactor.at<double>(i,j) / det;
+            inv.at<float>(i,j) = cofactor.at<float>(i,j) / det;
         }
     }
 
     return inv;
 }
 
-double getRotationCos(Mat src) {
-    return acos(src.at<double>(0,0));
+float getRotationCos(Mat src) {
+    return acos(src.at<float>(0,0));
 }
 
-double getRotationSin(Mat src) {
-    return asin(src.at<double>(1,0));
+float getRotationSin(Mat src) {
+    return asin(src.at<float>(1,0));
 }
 
-double getTransformationX(Mat src) {
-    return src.at<double>(2,0);
+float getTransformationX(Mat src) {
+    return src.at<float>(2,0);
 }
 
-double getTransformationY(Mat src) {
-    return src.at<double>(3,0);
+float getTransformationY(Mat src) {
+    return src.at<float>(3,0);
+}
+
+Mat getTransformationMatrix(Mat a, Mat b) {
+    Mat aT = getTransposeMatrix(a);
+
+    std::cout << "a = "<< std::endl << " "  << a << std::endl << std::endl;
+
+    std::cout << "aT = "<< std::endl << " "  << aT << std::endl << std::endl;
+
+
+    Mat aPseudo = a * aT;
+
+    std::cout << "aPseudo = "<< std::endl << " "  << aPseudo << std::endl << std::endl;
+
+    Mat aInv = getInverseMatrix(aPseudo);
+
+    std::cout << "aInv = "<< std::endl << " "  << aInv << std::endl << std::endl;
+
+    Mat aDing = aInv * aT;
+
+    std::cout << "aDing = "<< std::endl << " "  << aDing << std::endl << std::endl;
+
+    //Mat aDingMetB = aDing * b.clone();
+
+    //std::cout << "aDingMetB = "<< std::endl << " "  << aDingMetB << std::endl << std::endl;
+
+//    Mat aInv = getInverseMatrix(a * aT).clone();
+//    return aInv * (aT * b);
+    return aPseudo;
 }
 
 int main(int argc, char* argv[]) {
@@ -216,22 +240,20 @@ int main(int argc, char* argv[]) {
 		return -1;
     }
 
-    double dA[] = {1, 2, 3, 4, 0, 1, 4, 7, 5, 6, 0, 8};
+    float dAasdas[] = {1, 2, 3, 4, 0, 1, 4, 7, 5, 6, 0, 8};
 
-    Mat M = Mat(3, 4, CV_64FC1, dA);
+    Mat M = Mat(3, 4, CV_32FC1, dAasdas);
 
     Mat MTCV;
     Mat MTLJ = getTransposeMatrix(M).clone();
     transpose(M, MTCV);
 
     Mat MSQUARE = M.clone();
-    //M.mul(MTLJ);
-
-    //gemm(M, MTLJ, 1, MTLJ, 0, MSQUARE, 0);
+    
     MSQUARE = (M*MTLJ);
 
-    double MDLJ = findDeterminant(MSQUARE);
-    double MDCV = determinant(MSQUARE);
+    float MDLJ = findDeterminant(MSQUARE);
+    float MDCV = determinant(MSQUARE);
 
 
     Mat MILJ = getInverseMatrix(MSQUARE);
@@ -264,14 +286,44 @@ int main(int argc, char* argv[]) {
     /*
      * Find corners
      */
-    //std::vector<Point> imageAPoints = getCorners("A", src1);
-    //std::vector<Point> imageBPoints = getCorners("B", src2);
+    std::vector<Point> imageAPoints = getCorners("A", src1);
+    std::vector<Point> imageBPoints = getCorners("B", src2);
 
-    //auto transform_Matrix = getMatrix(imageAPoints, imageBPoints);
+    std::vector<Point2f> iAP2;
+    std::vector<Point2f> iBP2;
+    
+    for (auto p : imageAPoints) {
+        iAP2.push_back(Point2d((float)p.x, (float)p.y));
+    }
+    for (auto p : imageBPoints) {
+        iBP2.push_back(Point2d((float)p.x, (float)p.y));
+    }
+    
+    
 
+    float dA[] = {
+        iAP2[0].x, -iAP2[0].y, 1, 0,
+        iAP2[1].y, iAP2[1].x, 0, 1,
+        iAP2[2].x, -iAP2[2].y, 1, 0,
+        iAP2[3].y, iAP2[3].x, 0, 1
+    };
 
-    Mat cvTransformMatrix = getPerspectiveTransform(src1, src2);
+    Mat pointsA = Mat(4, 4, CV_32FC1, dA);
 
+    float dB[] {
+        iBP2[0].x, iBP2[0].y,
+        iBP2[1].x, iBP2[1].y,
+        iBP2[2].x, iBP2[2].y,
+        iBP2[3].x, iBP2[3].y
+    };
+
+    Mat pointsB = Mat(8, 1, CV_32FC1, dB);
+    
+    auto transformMatrix = getTransformationMatrix(pointsA, pointsB);
+
+    Mat cvTransformMatrix = getPerspectiveTransform(iAP2, iBP2);
+
+    std::cout << "transformMatrix = "<< std::endl << " "  << transformMatrix << std::endl << std::endl;
     std::cout << "cvTransformMatrix = "<< std::endl << " "  << cvTransformMatrix << std::endl << std::endl;
 
 	waitKey(0);
