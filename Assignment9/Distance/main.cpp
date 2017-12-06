@@ -12,6 +12,14 @@ int main(int argc, char ** argv) {
 		return -1;
 	}
 
+	double f_x = camera_matrix.at<double>(0,0);
+	double f_y = camera_matrix.at<double>(1,1);
+	double c_x = camera_matrix.at<double>(2,0);
+	double c_y = camera_matrix.at<double>(2,1);
+	double focal = 3.67; // millimeters
+	auto m = ((f_x + f_y)/2.0)/focal;
+	std::cout << m << "px/mm\n";
+
 	string filename(argv[1]);
 	Mat image = imread(filename);
 	Mat undistortedImage;
@@ -33,14 +41,20 @@ int main(int argc, char ** argv) {
 		foundBoardCorners.push_back(Point3f(p.x, p.y, 0.0f));
 	}
 
-	std::vector<Point3f> rvec;
-	std::vector<Point3f> tvec;
+	cv::RotatedRect box = cv::minAreaRect(cv::Mat(ptvec));
+	double size = box.size.width / m;
+	std::cout << "size: " << size << "\n";
 
-	cv::solvePnP(ptvec, foundBoardCorners, camera_matrix,
-                     distortion_coefficients, rvec, tvec);
+	double dist = 200.0 * focal / size;
+	std::cout << "dist: " << dist << "\n";
+	// std::vector<Point3f> rvec;
+	// std::vector<Point3f> tvec;
+
+	// cv::solvePnP(ptvec, foundBoardCorners, camera_matrix,
+    //                  distortion_coefficients, rvec, tvec);
 	
-	std::cout << "tvec: " << tvec << "\n\n";
-	std::cout << "rvec: " << rvec << "\n";
+	// std::cout << "tvec: " << tvec << "\n\n";
+	// std::cout << "rvec: " << rvec << "\n";
 	
 	return 0;
 }
