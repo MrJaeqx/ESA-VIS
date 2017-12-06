@@ -312,12 +312,14 @@ int main(int argc, char* argv[]) {
     warpPerspective(src1, transformedCustom , trans, src1.size());
     namedWindow("Custom image transform", WINDOW_NORMAL);
     resizeWindow("Custom image transform", 800, 480);
+    imwrite("./custom.png", transformedCustom);
     imshow("Custom image transform", transformedCustom);
 
     Mat transformedOpenCV;
     warpPerspective(src1, transformedOpenCV , cvTransformMatrix, src1.size());
     namedWindow("OpenCV image transform", WINDOW_NORMAL);
     resizeWindow("OpenCV image transform", 800, 480);
+    imwrite("./opencv.png", transformedCustom);
     imshow("OpenCV image transform", transformedOpenCV);
 
 	waitKey(0);
