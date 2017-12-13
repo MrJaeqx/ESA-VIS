@@ -2,20 +2,24 @@
 using namespace cv;
 
 //default capture width and height
-const int FRAME_WIDTH = 640;
-const int FRAME_HEIGHT = 480;
+//const int FRAME_WIDTH = 640;
+//const int FRAME_HEIGHT = 480;
 const std::string windowName = "Distance";
+const double true_size = 210.0; //mm
+const double focal = 3.67; // mm
 
 struct CameraParams {
-	CameraParams(Mat matrix, Mat coeff, double focal, double res) : 
+	CameraParams(Mat matrix, Mat coeff, double focal, double res, Size2i size) : 
 		camera_matrix(matrix), 
 		distortion_coefficients(coeff), 
 		focal(focal), 
-		resolution(res) { }
+		resolution(res),
+		size(size) { }
 	Mat camera_matrix;
 	Mat distortion_coefficients;
 	double focal;
 	double resolution;
+	Size2i size;
 };
 
 double checkerboardDistance(CameraParams params, Mat &image, bool verbose = false) {
@@ -23,33 +27,38 @@ double checkerboardDistance(CameraParams params, Mat &image, bool verbose = fals
 
 	undistort(image, undistortedImage, params.camera_matrix, params.distortion_coefficients);
 
-	//std::cout << "undistorted\n";
-
-	std::vector<Point> ptvec;
+	std::vector<Point> ptVec;
+	std::vector<Point2f> pt2fVec;
 
 	bool found = findChessboardCorners( 
 		undistortedImage, cv::Size(9, 6), 
-		ptvec, CV_CALIB_CB_ADAPTIVE_THRESH );
+		ptVec, CV_CALIB_CB_ADAPTIVE_THRESH );
 
-	if (verbose) std::cout << "Found: " << found << " (" << ptvec.size() << ")" << "\n";
-
-	std::vector<Point3f> foundBoardCorners;
-	for (auto p : ptvec) {
-		foundBoardCorners.push_back(Point3f(p.x, p.y, 0.0f));
+	if (verbose) {
+		std::cout << "Found: " << found << " (" << ptVec.size() << ")" << "\n";
 	}
 
-	std::vector<std::vector<Point>> ptVecVec = { ptvec };
+	for (auto p : ptVec) {
+		pt2fVec.push_back(Point2f(p.x, p.y));
+	}
+
 	Scalar color = Scalar( 0, 0, 255 );
-	if (found) drawContours( image, ptVecVec, 0, color, 1, 8, std::vector<Vec4i>(), 0, Point() );
 
-	cv::RotatedRect box = cv::minAreaRect(cv::Mat(ptvec));
+	cv::RotatedRect box = cv::minAreaRect(cv::Mat(ptVec));
 	double size = box.size.width / params.resolution;
-	if (verbose) std::cout << "size: " << size << "\n";
+	if (verbose) {
+		std::cout << "size: " << size << "\n";
+	}
 
-	double dist = 200.0 * params.focal / size;
-	std::cout << "dist: " << dist << "\n";
-
-	if (found) putText(image, "Dist: " + std::to_string(dist), ptvec[0], FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
+	double dist = true_size * params.focal / size;
+	if (found) {
+		drawChessboardCorners(image, cv::Size(9, 6), pt2fVec, found);
+		putText(image, "Dist: " + std::to_string(dist), ptVec[0], FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
+		std::cout << "Dist: " << dist << "\n";
+	}
+	else {
+		std::cout << "Not found" << "\n";
+	}
 
 	return dist;
 }
@@ -61,18 +70,17 @@ void checkerboardVideo(CameraParams params) {
 	capture.open(0);
 
 	//set height and width of capture frame
-	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
-	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+	capture.set(CV_CAP_PROP_FRAME_WIDTH, params.size.width);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT, params.size.height);
 
 	while (true) {
-		//store image to matrix
 		bool frame = capture.read(image);
 
 		if(!frame) {
 			capture.set(CV_CAP_PROP_POS_FRAMES, 0);
 			continue;
 		}
-		double dist = checkerboardDistance(params, image);
+		checkerboardDistance(params, image);
 
 		imshow(windowName, image);
 		//delay 30ms so that screen can refresh.
@@ -91,6 +99,10 @@ int main(int argc, char ** argv) {
 	Mat camera_matrix, distortion_coefficients;
 	fs["camera_matrix"] >> camera_matrix;
 	fs["distortion_coefficients"] >> distortion_coefficients;
+	int width, height;
+	fs["image_width"] >> width;
+	fs["image_height"] >> height;
+	Size2i size(width, height);
 
 	bool useVideo = false;
 	if (argc < 2) {
@@ -101,11 +113,10 @@ int main(int argc, char ** argv) {
 	double f_y = camera_matrix.at<double>(1,1);
 	//double c_x = camera_matrix.at<double>(2,0);
 	//double c_y = camera_matrix.at<double>(2,1);
-	double focal = 3.67; // millimeters
-	double m = ((f_x + f_y)/2.0)/focal;
-	std::cout << m << "px/mm\n";
+	double resolution = ((f_x + f_y)*0.5)/focal;
+	std::cout << resolution << "px/mm\n";
 
-	CameraParams params(camera_matrix, distortion_coefficients, focal, m);
+	CameraParams params(camera_matrix, distortion_coefficients, focal, resolution, size);
 
 	if (useVideo) {
 		checkerboardVideo(params);
@@ -115,4 +126,3 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 }
-
