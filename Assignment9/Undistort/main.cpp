@@ -18,7 +18,8 @@ int main(int argc, char ** argv) {
 
 	undistort(image, undistortedImage, camera_matrix, distortion_coefficients);
 
-	imwrite("undistorted_" + filename, undistortedImage);
+	imshow("Undistorted", image);
+	waitKey(0);
 	return 0;
 }
 
