@@ -28,4 +28,11 @@ Now we have all the information to undistort the image which will remove the len
 
 ## Measure distance
 
-text
+We can use the generated camera information from the last step to calculate distance of the checkerboard pattern. We load the data from the YAML file which we'll use later. Additionally we define the distance between some corners to use later. In this case we used 8 boxes on the pattern, which are 210mm. We also find the focal length of the camera, which is given by documentation of the camera. In our case with the Logitech C920, it's 3.67mm.
+
+First, the frame we want to measure is undistorted. Then using the `cv::findChessboardCorners` function we can get the points of the chessboard. With `cv::minAreaRect` we can find a rectangle, and with that we can get the width. Using the camera resolution, focal length and real size we can figure out the distance.
+
+We have two parts, one which just resolves the distance for one single image and one which takes frames from a camera. 
+
+Here's the result ([YouTube](https://youtu.be/FZD16QykA6w)).
+
