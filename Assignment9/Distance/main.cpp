@@ -1,9 +1,6 @@
 #include <opencv2/opencv.hpp>
 using namespace cv;
 
-//default capture width and height
-//const int FRAME_WIDTH = 640;
-//const int FRAME_HEIGHT = 480;
 const std::string windowName = "Distance";
 const double true_size = 210.0; //mm
 const double focal = 3.67; // mm
@@ -23,30 +20,24 @@ struct CameraParams {
 };
 
 double checkerboardDistance(CameraParams params, Mat &image, bool verbose = false) {
+	const Scalar color = Scalar( 0, 0, 255 );
 	Mat undistortedImage;
-
-	undistort(image, undistortedImage, params.camera_matrix, params.distortion_coefficients);
-
 	std::vector<Point> ptVec;
 	std::vector<Point2f> pt2fVec;
 
+	undistort(image, undistortedImage, params.camera_matrix, params.distortion_coefficients);
 	bool found = findChessboardCorners( 
 		undistortedImage, cv::Size(9, 6), 
 		ptVec, CV_CALIB_CB_ADAPTIVE_THRESH );
-
-	if (verbose) {
-		std::cout << "Found: " << found << " (" << ptVec.size() << ")" << "\n";
-	}
 
 	for (auto p : ptVec) {
 		pt2fVec.push_back(Point2f(p.x, p.y));
 	}
 
-	Scalar color = Scalar( 0, 0, 255 );
-
 	cv::RotatedRect box = cv::minAreaRect(cv::Mat(ptVec));
 	double size = box.size.width / params.resolution;
 	if (verbose) {
+		std::cout << "Found: " << found << " (" << ptVec.size() << ")" << "\n";
 		std::cout << "size: " << size << "\n";
 	}
 
@@ -68,8 +59,6 @@ void checkerboardVideo(CameraParams params) {
 	VideoCapture capture;
 
 	capture.open(0);
-
-	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH, params.size.width);
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT, params.size.height);
 
@@ -95,7 +84,13 @@ void singlePicture(CameraParams params, std::string fileName) {
 }
 
 int main(int argc, char ** argv) {
-	FileStorage fs("out_camera_data.yml", FileStorage::READ);
+	if (argc < 2) {
+		std::cout << "gib args (between [] is optional)" << std::endl;
+		std::cout << argv[0] << " cam_data.yml [image.jpg]" << std::endl;
+		return -1;
+	}
+
+	FileStorage fs(argv[1], FileStorage::READ);
 	Mat camera_matrix, distortion_coefficients;
 	fs["camera_matrix"] >> camera_matrix;
 	fs["distortion_coefficients"] >> distortion_coefficients;
@@ -105,7 +100,7 @@ int main(int argc, char ** argv) {
 	Size2i size(width, height);
 
 	bool useVideo = false;
-	if (argc < 2) {
+	if (argc < 3) {
 		useVideo = true;
 	}
 
@@ -122,7 +117,7 @@ int main(int argc, char ** argv) {
 		checkerboardVideo(params);
 	}
 	else {
-		singlePicture(params, argv[1]);
+		singlePicture(params, argv[2]);
 		return 0;
 	}
 }
