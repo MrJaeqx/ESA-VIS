@@ -1,32 +1,28 @@
 #include <opencv2/opencv.hpp>
 using namespace cv;
-using namespace std;
-int main(int argc, char ** argv) {
-	FileStorage fs("out_camera_data.yml", FileStorage::READ);
-	Mat camera_matrix, distortion_coefficients;
-	fs["camera_matrix"] >> camera_matrix;
-	fs["distortion_coefficients"] >> distortion_coefficients;
 
-	if (argc < 2) {
-		std::cout << "Usage: " << argv[0] << " image" << std::endl;
-		return -1;
-	}
+//default capture width and height
+const int FRAME_WIDTH = 640;
+const int FRAME_HEIGHT = 480;
 
-	double f_x = camera_matrix.at<double>(0,0);
-	double f_y = camera_matrix.at<double>(1,1);
-	double c_x = camera_matrix.at<double>(2,0);
-	double c_y = camera_matrix.at<double>(2,1);
-	double focal = 3.67; // millimeters
-	auto m = ((f_x + f_y)/2.0)/focal;
-	std::cout << m << "px/mm\n";
+struct CameraParams {
+	CameraParams(Mat matrix, Mat coeff, double focal, double res) : 
+		camera_matrix(matrix), 
+		distortion_coefficients(coeff), 
+		focal(focal), 
+		resolution(res) { }
+	Mat camera_matrix;
+	Mat distortion_coefficients;
+	double focal;
+	double resolution;
+};
 
-	string filename(argv[1]);
-	Mat image = imread(filename);
+void checkerboardDistance(CameraParams params, Mat image, bool verbose = false) {
 	Mat undistortedImage;
 
-	undistort(image, undistortedImage, camera_matrix, distortion_coefficients);
+	undistort(image, undistortedImage, params.camera_matrix, params.distortion_coefficients);
 
-	std::cout << "undistorted\n";
+	//std::cout << "undistorted\n";
 
 	std::vector<Point> ptvec;
 
@@ -34,7 +30,7 @@ int main(int argc, char ** argv) {
 		undistortedImage, cv::Size(9, 6), 
 		ptvec, CV_CALIB_CB_ADAPTIVE_THRESH );
 
-	std::cout << "Found: " << found << " (" << ptvec.size() << ")" << "\n";
+	if (verbose) std::cout << "Found: " << found << " (" << ptvec.size() << ")" << "\n";
 
 	std::vector<Point3f> foundBoardCorners;
 	for (auto p : ptvec) {
@@ -42,20 +38,67 @@ int main(int argc, char ** argv) {
 	}
 
 	cv::RotatedRect box = cv::minAreaRect(cv::Mat(ptvec));
-	double size = box.size.width / m;
-	std::cout << "size: " << size << "\n";
+	double size = box.size.width / params.resolution;
+	if (verbose) std::cout << "size: " << size << "\n";
 
-	double dist = 200.0 * focal / size;
+	double dist = 200.0 * params.focal / size;
 	std::cout << "dist: " << dist << "\n";
-	// std::vector<Point3f> rvec;
-	// std::vector<Point3f> tvec;
+}
 
-	// cv::solvePnP(ptvec, foundBoardCorners, camera_matrix,
-    //                  distortion_coefficients, rvec, tvec);
-	
-	// std::cout << "tvec: " << tvec << "\n\n";
-	// std::cout << "rvec: " << rvec << "\n";
-	
-	return 0;
+void checkerboardVideo(CameraParams params) {
+	Mat image;
+	VideoCapture capture;
+
+	capture.open(0);
+
+	//set height and width of capture frame
+	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+
+	while (true) {
+		//store image to matrix
+		bool frame = capture.read(image);
+
+		if(!frame) {
+			capture.set(CV_CAP_PROP_POS_FRAMES, 0);
+			continue;
+		}
+		checkerboardDistance(params, image);
+	}
+}
+
+void singlePicture(CameraParams params, std::string fileName) {
+	Mat image = imread(fileName);
+	checkerboardDistance(params, image, true);
+}
+
+int main(int argc, char ** argv) {
+	FileStorage fs("out_camera_data.yml", FileStorage::READ);
+	Mat camera_matrix, distortion_coefficients;
+	fs["camera_matrix"] >> camera_matrix;
+	fs["distortion_coefficients"] >> distortion_coefficients;
+
+	bool useVideo = false;
+	if (argc < 2) {
+		useVideo = true;
+	}
+
+	double f_x = camera_matrix.at<double>(0,0);
+	double f_y = camera_matrix.at<double>(1,1);
+	//double c_x = camera_matrix.at<double>(2,0);
+	//double c_y = camera_matrix.at<double>(2,1);
+	double focal = 3.67; // millimeters
+	double m = ((f_x + f_y)/2.0)/focal;
+	std::cout << m << "px/mm\n";
+
+	CameraParams params(camera_matrix, distortion_coefficients, focal, m);
+
+	if (useVideo) {
+		checkerboardVideo(params);
+	}
+	else {
+		singlePicture(params, argv[1]);
+		return 0;
+	}
 }
 
