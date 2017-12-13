@@ -30,6 +30,11 @@ double checkerboardDistance(CameraParams params, Mat &image, bool verbose = fals
 		undistortedImage, cv::Size(9, 6), 
 		ptVec, CV_CALIB_CB_ADAPTIVE_THRESH );
 
+	if (!found) {
+		std::cout << "Not found" << "\n";
+		return -1.0;
+	}
+
 	for (auto p : ptVec) {
 		pt2fVec.push_back(Point2f(p.x, p.y));
 	}
@@ -42,14 +47,10 @@ double checkerboardDistance(CameraParams params, Mat &image, bool verbose = fals
 	}
 
 	double dist = true_size * params.focal / size;
-	if (found) {
-		drawChessboardCorners(image, cv::Size(9, 6), pt2fVec, found);
-		putText(image, "Dist: " + std::to_string(dist), ptVec[0], FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
-		std::cout << "Dist: " << dist << "\n";
-	}
-	else {
-		std::cout << "Not found" << "\n";
-	}
+	drawChessboardCorners(image, cv::Size(9, 6), pt2fVec, found);
+	putText(image, "Dist: " + std::to_string(dist), ptVec[0], FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
+	std::cout << "Dist: " << dist << "\n";
+	
 
 	return dist;
 }
