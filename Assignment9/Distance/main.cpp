@@ -48,7 +48,7 @@ double checkerboardDistance(CameraParams params, Mat &image, bool verbose = fals
 
 	double dist = true_size * params.focal / size;
 	drawChessboardCorners(image, cv::Size(9, 6), pt2fVec, found);
-	putText(image, "Dist: " + std::to_string(dist), ptVec[0], FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
+	putText(image, "Dist: " + std::to_string(dist), ptVec[0] + (ptVec[0]-ptVec[18]), FONT_HERSHEY_SIMPLEX, 0.5, color, 1, CV_AA, false);
 	std::cout << "Dist: " << dist << "\n";
 	
 
