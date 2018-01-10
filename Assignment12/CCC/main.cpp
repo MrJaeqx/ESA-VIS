@@ -1,8 +1,14 @@
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <string>
 
 // Parameters for finding CCC targets
 #define DPIXEL  3.0             // max distance between centroids
+const int FRAME_WIDTH = 1440;
+const int FRAME_HEIGHT = 1080;
+const std::string windowName = "Video enzo";
 
 // Find all CCC targets on the image.  Return a vector (list) of their locations.
 std::vector<cv::Point2d> findTargets(cv::Mat Image)
@@ -66,6 +72,48 @@ std::vector<cv::Point2d> findTargets(cv::Mat Image)
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Hey!" << std::endl;
+    if (argc < 2) {
+        std::cout << "Usage: " << argv[0] << " image" << std::endl;
+        return -1;
+    }
+
+    std::string filename(argv[1]);
+
+    //Matrices
+    cv::Mat cameraFeed;
+
+    //video capture object to acquire webcam feed
+    cv::VideoCapture capture;
+
+    //open capture object at location zero (default location for webcam)
+    capture.open(filename);
+
+    //set height and width of capture frame
+    capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
+    capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+
+    //start an infinite loop where webcam feed is copied to cameraFeed matrix
+    //all of our operations will be performed within this loop
+    while(1) {
+        //store image to matrix
+        bool frame = capture.read(cameraFeed);
+
+        // If end of video restart
+        if(!frame) {
+            capture.set(CV_CAP_PROP_POS_FRAMES, 0);
+            std::cout << "OHNO!" << std::endl;
+            continue;
+        }
+
+        //show frames 
+        cv::imshow(windowName, cameraFeed);
+
+        //delay 30ms so that screen can refresh.
+        //image will not appear without this waitKey() command
+        cv::waitKey(30);
+    }
+
+    capture.release();
+
     return 0;
 }
