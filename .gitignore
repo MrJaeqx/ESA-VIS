@@ -36,6 +36,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 CMakeFiles/
+build/
 
 # Omdat ik een geweldige editor gebruik
 .vscode/
