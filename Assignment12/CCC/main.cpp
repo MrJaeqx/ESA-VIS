@@ -10,7 +10,7 @@ const int FRAME_WIDTH = 1440;
 const int FRAME_HEIGHT = 1080;
 const std::string windowName = "Video enzo";
 
-// (C) 2019 Oswald
+// (C) 2018 Oswald Figaroa
 // This function tries to find the 5-target pattern that looks like this
 //  1  2  3
 //  4     5
@@ -108,48 +108,7 @@ std::vector<cv::Point2d> orderTargets(std::vector<cv::Point2d> allTargets) {
 	return orderedTargets;
 }
 
-
-cv::Mat putImageInCorner(cv::Mat& p_OriginalImage, 
-                         std::vector<cv::Point2d> p_Points) {
-	cv::Mat l_ResultImage = p_OriginalImage.clone();
-
-    if (p_Points.size() < 5) return p_OriginalImage;
-
-	cv::Point2f pointsFromImage[4];
-    pointsFromImage[0] = (p_Points[0]);
-    pointsFromImage[1] = (p_Points[2]);
-    pointsFromImage[2] = (p_Points[3]);
-    pointsFromImage[3] = (p_Points[4]);
-
-	cv::Point2f pointsToMoveTo[4];
-	pointsToMoveTo[0].x = 0;
-	pointsToMoveTo[0].y = 0;
-
-	pointsToMoveTo[2].x = 0;
-	pointsToMoveTo[2].y = l_ResultImage.rows;
-
-	pointsToMoveTo[1].x = l_ResultImage.cols;
-	pointsToMoveTo[1].y = 0;
-
-	pointsToMoveTo[3].x = l_ResultImage.cols;
-	pointsToMoveTo[3].y = l_ResultImage.rows;
-
-	// Get perspective matrix from corners.
-	cv::Mat l_Matrix = getPerspectiveTransform(pointsFromImage, pointsToMoveTo);
-
-    // Move the original image to the perspective.
-    cv::Mat warped;
-    warpPerspective(p_OriginalImage, warped, l_Matrix, l_ResultImage.size(), cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-
-    // resize image and put over original
-	cv::Mat small_image;
-	cv::Size size(800,400);
-	resize(warped,small_image,size);
-	small_image.copyTo(l_ResultImage(cv::Rect(0,0,small_image.cols, small_image.rows)));
-
-	return l_ResultImage;
-}
-
+// (C) 2018 Oswald Figaroa
 // Find all CCC targets on the image.  Return a vector (list) of their locations.
 std::vector<cv::Point2d> findTargets(cv::Mat Image)
 {
@@ -214,6 +173,42 @@ std::vector<cv::Point2d> findTargets(cv::Mat Image)
     return targets;
 }
 
+cv::Mat putImageInCorner(cv::Mat& p_OriginalImage, 
+                         std::vector<cv::Point2d> p_Points) {
+    cv::Mat warped, small_image;
+    cv::Mat l_ResultImage = p_OriginalImage.clone();
+
+    if (p_Points.size() < 5) return p_OriginalImage;
+
+    cv::Point2f pointsFromImage[4];
+    pointsFromImage[0] = (p_Points[0]);
+    pointsFromImage[1] = (p_Points[2]);
+    pointsFromImage[2] = (p_Points[3]);
+    pointsFromImage[3] = (p_Points[4]);
+
+    cv::Point2f pointsToMoveTo[4];
+    pointsToMoveTo[0].x = 0;
+    pointsToMoveTo[0].y = 0;
+
+    pointsToMoveTo[2].x = 0;
+    pointsToMoveTo[2].y = l_ResultImage.rows;
+
+    pointsToMoveTo[1].x = l_ResultImage.cols;
+    pointsToMoveTo[1].y = 0;
+
+    pointsToMoveTo[3].x = l_ResultImage.cols;
+    pointsToMoveTo[3].y = l_ResultImage.rows;
+
+    cv::Mat l_Matrix = getPerspectiveTransform(pointsFromImage, pointsToMoveTo);
+    warpPerspective(p_OriginalImage, warped, l_Matrix, l_ResultImage.size(), cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+
+    cv::Size size(FRAME_WIDTH/4,FRAME_HEIGHT/5);
+    resize(warped,small_image,size);
+    small_image.copyTo(l_ResultImage(cv::Rect(0,0,small_image.cols, small_image.rows)));
+
+    return l_ResultImage;
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " image" << std::endl;
@@ -259,7 +254,6 @@ int main(int argc, char* argv[]) {
             // circle outline
             circle( cameraFeed, center, 23, cv::Scalar(0,0,255), 3, 8, 0 );
             char text[32];
-            int baseline = 1;
             sprintf(text, "Point %d", i);
             cv::putText(cameraFeed, text, center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,0,0), 1, CV_AA, false);
         }
