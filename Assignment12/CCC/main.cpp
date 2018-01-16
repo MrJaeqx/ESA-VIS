@@ -110,9 +110,10 @@ std::vector<cv::Point2d> orderTargets(std::vector<cv::Point2d> allTargets) {
 
 
 cv::Mat putImageInCorner(cv::Mat& p_OriginalImage, 
-                         cv::Mat& p_LabeledImage, 
                          std::vector<cv::Point2d> p_Points) {
-	cv::Mat l_ResultImage = p_LabeledImage.clone();
+	cv::Mat l_ResultImage = p_OriginalImage.clone();
+
+    if (p_Points.size() < 5) return p_OriginalImage;
 
 	cv::Point2f pointsFromImage[4];
     pointsFromImage[0] = (p_Points[0]);
@@ -262,8 +263,7 @@ int main(int argc, char* argv[]) {
             sprintf(text, "Point %d", i);
             cv::putText(cameraFeed, text, center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,0,0), 1, CV_AA, false);
         }
-        cv::Mat hoi = cameraFeed.clone();        
-        auto l_ResultImage = putImageInCorner(cameraFeed, hoi, circles);
+        auto l_ResultImage = putImageInCorner(cameraFeed, circles);
 		cv::imshow(windowName, l_ResultImage);
 
         //show frames 
