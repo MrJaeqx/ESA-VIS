@@ -70,7 +70,7 @@ std::vector<cv::Point2d> findTargets(cv::Mat Image)
         // This must be a valid target; add it to the output list.
         targets.push_back(x1);
     }
-    
+
     return targets;
 }
 
@@ -111,13 +111,17 @@ int main(int argc, char* argv[]) {
         std::vector<cv::Point2d> circles;
         circles = findTargets(cameraFeed);
 
-        for( unsigned int i = 0; i < circles.size(); i++ )
-        {
-              cv::Point2d center(cvRound(circles[i].x), cvRound(circles[i].y));
-              // circle center
-              circle( cameraFeed, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
-              // circle outline
-              circle( cameraFeed, center, 23, cv::Scalar(0,0,255), 3, 8, 0 );
+        for( unsigned int i = 0; i < circles.size(); i++ ) {
+            cv::Point2d center(cvRound(circles[i].x), cvRound(circles[i].y));
+            // circle center
+            circle( cameraFeed, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
+            // circle outline
+            circle( cameraFeed, center, 23, cv::Scalar(0,0,255), 3, 8, 0 );
+            char text[32];
+            int baseline = 1;
+            sprintf(text, "Point %d", i);
+            cv::Size size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+            cv::putText(cameraFeed, text, center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,0,0), 1, CV_AA, false);
            }
 
         //show frames 
