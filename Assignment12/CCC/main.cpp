@@ -15,10 +15,13 @@ std::vector<cv::Point2d> findTargets(cv::Mat Image)
 {
     std::vector<cv::Point2d> targets;
 
+    cv::Mat gray;
     cv::Mat imageThresh;
 
+    cv::cvtColor( Image, gray, CV_BGR2GRAY );
+
     // Do Otsu global thresholding.
-    cv::threshold(Image,
+    cv::threshold(gray,
         imageThresh,        // output thresholded image
         0,                  // threshold value
         255,                // output value
@@ -67,7 +70,7 @@ std::vector<cv::Point2d> findTargets(cv::Mat Image)
         // This must be a valid target; add it to the output list.
         targets.push_back(x1);
     }
-
+    
     return targets;
 }
 
@@ -101,9 +104,21 @@ int main(int argc, char* argv[]) {
         // If end of video restart
         if(!frame) {
             capture.set(CV_CAP_PROP_POS_FRAMES, 0);
-            std::cout << "OHNO!" << std::endl;
+            std::cout << "No more frames..." << std::endl;
             continue;
         }
+
+        std::vector<cv::Point2d> circles;
+        circles = findTargets(cameraFeed);
+
+        for( unsigned int i = 0; i < circles.size(); i++ )
+        {
+              cv::Point2d center(cvRound(circles[i].x), cvRound(circles[i].y));
+              // circle center
+              circle( cameraFeed, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
+              // circle outline
+              circle( cameraFeed, center, 23, cv::Scalar(0,0,255), 3, 8, 0 );
+           }
 
         //show frames 
         cv::imshow(windowName, cameraFeed);
